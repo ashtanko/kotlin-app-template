@@ -45,6 +45,15 @@ class ExampleTest {
     }
 
     @Test
+    fun `Divide test`() {
+        Assertions.assertAll(
+            Executable { Assertions.assertEquals(2.0, calculator.divide(4, 2)) },
+            Executable { Assertions.assertEquals(1.0, calculator.divide(1, 1)) },
+            Executable { Assertions.assertEquals(1.5, calculator.divide(3, 2)) }
+        )
+    }
+
+    @Test
     fun `Dividing by zero should throw the DivideByZeroException`() {
         val exception = Assertions.assertThrows(DivideByZeroException::class.java) {
             calculator.divide(5, 0)
