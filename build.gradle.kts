@@ -217,6 +217,7 @@ tasks {
         reports {
             html.required.set(true)
             xml.required.set(true)
+            xml.outputLocation.set(file("$buildDir/reports/jacoco/report.xml"))
         }
         executionData(file("build/jacoco/test.exec"))
     }
