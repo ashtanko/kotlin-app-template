@@ -64,7 +64,7 @@ dependencies {
     testApi("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.COROUTINES}")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:${Versions.COROUTINES}")
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
-    //testImplementation("io.kotest:kotest-runner-junit5:4.6.0")
+
     testImplementation("io.kotlintest:kotlintest-core:3.4.2")
     testImplementation("io.kotlintest:kotlintest-runner-junit5:3.4.2")
     testImplementation("io.kotlintest:kotlintest-assertions-arrow:3.4.2")
