@@ -4,7 +4,11 @@ on:
     branches:
       - main
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [ opened, synchronize, reopened ]
+
+env:
+  GRADLE_HOME: ${{ github.workspace }}/gradle-home
+
 jobs:
   build:
     name: Build
@@ -17,25 +21,59 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 11
+
       - name: Cache SonarCloud packages
         uses: actions/cache@v1
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
-      - name: Cache Gradle packages
-        uses: actions/cache@v1
+
+      - name: Cache gradle dependencies
+        uses: actions/cache@v2.1.6
+        with:
+          path: ${{ env.GRADLE_HOME }}/caches
+          # Include the SHA in the hash so this step always adds a cache entry. If we didn't use the SHA, the artifacts
+          # would only get cached once for each build config hash.
+          # Don't use ${{ runner.os }} in the key so we don't re-assemble for UI tests.
+          key: gradle-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties') }}-${{ hashFiles('**/*.gradle*') }}-${{ hashFiles('**/buildSrc/**') }}-${{ github.sha }}
+          # The first time a SHA is assembled, we still want to load dependencies from the cache.
+          # Note that none of jobs dependent on this one need restore keys, since they'll always have an exact hit.
+          restore-keys: |
+            gradle-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties') }}-${{ hashFiles('**/*.gradle*') }}-${{ hashFiles('**/buildSrc/**') }}-
+
+      - name: Make checksum.sh executable
+        run: chmod +x checksum.sh
+
+      - name: Generate cache key
+        run: ./checksum.sh checksum.txt
+
+      - uses: actions/cache@v2.1.6
         with:
           path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-          restore-keys: ${{ runner.os }}-gradle
+          key: ${{ runner.os }}-gradle-${{ hashFiles('checksum.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Run checks and tests
+        run: ./gradlew detekt ktlintCheck test --build-cache --no-daemon --stacktrace --gradle-user-home "$GRADLE_HOME"
+
+      - name: Upload test results
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-results
+          path: "${{ github.workspace }}/**/build/reports/tests"
+
       - name: Jacoco test report
         run: ./gradlew jacocoTestReport
+
       - name: Upload jacoco report
         uses: actions/upload-artifact@v2
         with:
           name: jacoco-report
           path: "${{ github.workspace }}/**/build/reports/jacoco"
+
       - name: Build and analyze
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
