@@ -2,8 +2,12 @@ name: Kotlin CI
 
 on:
   push:
+    branches:
+      - main
     paths-ignore:
       - '**.md'
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 env:
   GRADLE_HOME: ${{ github.workspace }}/gradle-home
