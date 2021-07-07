@@ -21,7 +21,7 @@ import kotlin.math.sqrt
 
 class Calculator {
     fun add(a: Int, b: Int) = a + b
-    fun divide(a: Int, b: Int):Double = if (b == 0) {
+    fun divide(a: Int, b: Int): Double = if (b == 0) {
         throw DivideByZeroException(a)
     } else {
         a.toDouble() / b.toDouble()
