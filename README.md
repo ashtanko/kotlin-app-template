@@ -7,6 +7,7 @@
   <a href="https://sonarcloud.io/dashboard?id=ashtanko_kotlin-app-template"><img alt="Quality Gate Status" src="https://sonarcloud.io/api/project_badges/measure?project=ashtanko_kotlin-app-template&metric=alert_status"/></a>
   <a href="https://sonarcloud.io/dashboard?id=ashtanko_kotlin-app-template"><img alt="Lines of Code" src="https://sonarcloud.io/api/project_badges/measure?project=ashtanko_kotlin-app-template&metric=ncloc"/></a>
   <a href="https://sonarcloud.io/dashboard?id=ashtanko_kotlin-app-template"><img alt="Coverage" src="https://sonarcloud.io/api/project_badges/measure?project=ashtanko_kotlin-app-template&metric=coverage"/></a>
+  <a href="https://codecov.io/gh/ashtanko/kotlin-app-template"><img alt="Codecov" src="https://codecov.io/gh/ashtanko/kotlin-app-template/branch/main/graph/badge.svg?token=JEU9EIJMHA"/></a>
 </p><br>
 
 A simple Github template that lets you create an **Kotlin** project and be up and running in a **few seconds**.
