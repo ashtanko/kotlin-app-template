@@ -20,7 +20,7 @@ import java.util.Locale
 val projectJvmTarget = "11"
 val satisfyingNumberOfCores = Runtime.getRuntime().availableProcessors().div(2).takeIf { it > 0 } ?: 1
 val ktlint: Configuration by configurations.creating
-val isK2Enabled = false
+val isK2Enabled = true
 val k2CompilerArg = if (isK2Enabled) listOf("-Xuse-k2") else emptyList()
 
 fun isLinux(): Boolean {
