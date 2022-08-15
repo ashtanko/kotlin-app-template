@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Alexey Shtanko
+ * Copyright 2022 Oleksii Shtanko
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,10 @@
 
 package dev.shtanko.template
 
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertAll
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Tags
@@ -32,61 +35,51 @@ class ExampleTest {
 
     @Test
     fun `When adding 1 and 3 then answer is 4`() {
-        Assertions.assertEquals(4, calculator.add(1, 3))
+        assertEquals(4, calculator.add(1, 3))
     }
 
     @Test
     fun `The square of a number should be equal to that number multiplied in itself`() {
-        Assertions.assertAll(
-            Executable { Assertions.assertEquals(1, calculator.square(1)) },
-            Executable { Assertions.assertEquals(4, calculator.square(2)) },
-            Executable { Assertions.assertEquals(9, calculator.square(3)) }
+        assertAll(
+            Executable { assertEquals(1, calculator.square(1)) },
+            Executable { assertEquals(4, calculator.square(2)) },
+            Executable { assertEquals(9, calculator.square(3)) }
         )
     }
 
     @Test
     fun `Divide test`() {
-        Assertions.assertAll(
-            Executable { Assertions.assertEquals(2.0, calculator.divide(4, 2)) },
-            Executable { Assertions.assertEquals(1.0, calculator.divide(1, 1)) },
-            Executable { Assertions.assertEquals(1.5, calculator.divide(3, 2)) }
+        assertAll(
+            Executable { assertEquals(2.0, calculator.divide(4, 2)) },
+            Executable { assertEquals(1.0, calculator.divide(1, 1)) },
+            Executable { assertEquals(1.5, calculator.divide(3, 2)) }
         )
     }
 
     @Test
     fun `Dividing by zero should throw the DivideByZeroException`() {
-        val exception = Assertions.assertThrows(DivideByZeroException::class.java) {
+        val exception = assertThrows(DivideByZeroException::class.java) {
             calculator.divide(5, 0)
         }
-
-        Assertions.assertEquals(5, exception.numerator)
+        assertEquals(5, exception.numerator)
     }
 
     @Test
     fun `isEmpty should return true for empty lists`() {
         val list = listOf<String>()
-        Assertions.assertTrue(list::isEmpty)
+        assertTrue(list::isEmpty)
     }
 
     @TestFactory
     fun `Squares test`() = listOf(
         DynamicTest.dynamicTest("when I calculate 1^2 then I get 1") {
-            Assertions.assertEquals(
-                1,
-                calculator.square(1)
-            )
+            assertEquals(1, calculator.square(1))
         },
         DynamicTest.dynamicTest("when I calculate 2^2 then I get 4") {
-            Assertions.assertEquals(
-                4,
-                calculator.square(2)
-            )
+            assertEquals(4, calculator.square(2))
         },
         DynamicTest.dynamicTest("when I calculate 3^2 then I get 9") {
-            Assertions.assertEquals(
-                9,
-                calculator.square(3)
-            )
+            assertEquals(9, calculator.square(3))
         }
     )
 
@@ -97,12 +90,11 @@ class ExampleTest {
         3 to 9,
         4 to 16,
         5 to 25
-    )
-        .map { (input, expected) ->
-            DynamicTest.dynamicTest("when I calculate $input^2 then I get $expected") {
-                Assertions.assertEquals(expected, calculator.square(input))
-            }
+    ).map { (input, expected) ->
+        DynamicTest.dynamicTest("when I calculate $input^2 then I get $expected") {
+            assertEquals(expected, calculator.square(input))
         }
+    }
 
     @ParameterizedTest
     @CsvSource(
@@ -111,15 +103,12 @@ class ExampleTest {
         "3, 9"
     )
     fun `Squares test`(input: Int, expected: Int) {
-        Assertions.assertEquals(expected, input * input)
+        assertEquals(expected, input * input)
     }
 
-    @Tags(
-        Tag("slow"),
-        Tag("logarithms")
-    )
+    @Tags(Tag("slow"), Tag("logarithms"))
     @Test
     fun `Log to base 2 of 8 should be equal to 3`() {
-        Assertions.assertEquals(3.0, calculator.log(2, 8))
+        assertEquals(3.0, calculator.log(2, 8))
     }
 }
