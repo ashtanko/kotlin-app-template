@@ -4,6 +4,11 @@ junit = "5.8.2"
 kotlin = "1.7.10"
 mockk = "1.12.3"
 detekt = "1.21.0"
+dokka = "1.7.10"
+spotless = "6.9.1"
+dependency = "1.12.0"
+pitest = "1.7.4"
+ktlint = "0.46.1"
 
 [libraries]
 junit = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
@@ -15,6 +20,7 @@ kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref =
 kotlin-gradle = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 detekt_formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
+ktlint = { module = "com.pinterest:ktlint", version.ref = "ktlint" }
 
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 
@@ -22,3 +28,7 @@ mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 kt-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kt-serializatin = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
+dependency-analysis = { id = "com.autonomousapps.dependency-analysis", version.ref = "dependency" }
+pitest = { id = "info.solidsoft.pitest", version.ref = "pitest" }

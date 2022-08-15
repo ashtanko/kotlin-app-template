@@ -33,12 +33,12 @@ plugins {
     application
     jacoco
     idea
-    id("io.gitlab.arturbosch.detekt") version "1.21.0"
-    id("org.jetbrains.dokka") version "1.6.21"
-    id("com.diffplug.spotless") version "6.3.0"
-    id("com.autonomousapps.dependency-analysis") version "1.0.0-rc01"
-    id("info.solidsoft.pitest") version "1.7.4"
     alias(libs.plugins.kt.jvm)
+    alias(libs.plugins.detekt)
+    alias(libs.plugins.dokka)
+    alias(libs.plugins.spotless)
+    alias(libs.plugins.dependency.analysis)
+    alias(libs.plugins.pitest)
 }
 
 repositories {
@@ -79,8 +79,8 @@ plugins.withId("info.solidsoft.pitest") {
     configure<info.solidsoft.gradle.pitest.PitestPluginExtension> {
         jvmArgs.set(listOf("-Xmx1024m"))
         avoidCallsTo.set(setOf("kotlin.jvm.internal", "kotlin.Result"))
-        targetClasses.set(setOf("dev.shtanko.algorithms.*"))
-        targetTests.set(setOf("dev.shtanko.algorithms.*"))
+        targetClasses.set(setOf("dev.shtanko.template.*"))
+        targetTests.set(setOf("dev.shtanko.template.*"))
         pitestVersion.set("1.4.11")
         verbose.set(true)
         threads.set(System.getenv("PITEST_THREADS")?.toInt() ?: satisfyingNumberOfCores)
@@ -214,7 +214,7 @@ dependencies {
     implementation(libs.kotlin.stdlib)
     implementation(libs.kotlin.reflect)
     implementation(libs.kotlin.coroutines)
-    ktlint("com.pinterest:ktlint:0.46.1")
+    ktlint(libs.ktlint)
 
     testImplementation(libs.mockk)
     testImplementation(libs.junit)

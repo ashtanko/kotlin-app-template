@@ -24,6 +24,7 @@ place.
 - CI Setup with GitHub Actions.
 - Kotlin Static Analysis via `detekt` and `ktlint` and `spotless`.
 - Issues Template (bug report + feature request).
+- Documentation Engine for Kotlin via `dokka`
 
 ## Contributing 🤝
 
