@@ -68,13 +68,19 @@ jobs:
       - name: Jacoco test report
         run: ./gradlew jacocoTestReport
 
-      - name: Upload jacoco report
-        uses: actions/upload-artifact@v2
-        with:
-          name: jacoco-report
-          path: "${{ github.workspace }}/**/build/reports/jacoco"
-
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2.1.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Upload jacoco report
+        uses: actions/upload-artifact@v3
+        with:
+          name: jacoco-report
+          path: "${{ github.workspace }}/**/build/reports/jacoco"
+
+      - name: Upload detekt report
+        uses: actions/upload-artifact@v3
+        with:
+          name: detekt-report
+          path: "${{ github.workspace }}/**/build/reports/detekt/detekt.html"
