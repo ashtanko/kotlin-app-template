@@ -19,7 +19,20 @@ package dev.shtanko.template
 import kotlin.math.ln
 import kotlin.math.sqrt
 
+/**
+ * A calculator.
+ *
+ * This class just a documentation example.
+ *
+ * @constructor Creates an empty calculator.
+ */
 class Calculator {
+    /**
+     * Sum [a] and [b].
+     * @param a
+     * @param b
+     * @return sum [a] + [b]
+     */
     fun add(a: Int, b: Int) = a + b
 
     fun divide(a: Int, b: Int): Double = if (b == 0) {

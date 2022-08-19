@@ -16,4 +16,9 @@
 
 package dev.shtanko.template
 
+/**
+ * Some kDoc
+ * @param numerator
+ * @throws Exception
+ */
 class DivideByZeroException(val numerator: Int) : Exception()
