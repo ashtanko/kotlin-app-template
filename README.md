@@ -2,12 +2,13 @@
 
 <p align="center">
   <a href="https://opensource.org/licenses/Apache-2.0"><img alt="License" src="https://img.shields.io/badge/License-Apache%202.0-blue.svg"/></a>
-  <a href="https://github.com/ashtanko/kotlin-app-template/actions/workflows/build.yml"><img alt="Build Status" 
-  src="https://github.com/ashtanko/kotlin-app-template/actions/workflows/build.yml/badge.svg"/></a>
+  <a href="https://github.com/ashtanko/kotlin-app-template/actions/workflows/ci.yml"><img alt="Build Status" src="https://github.com/ashtanko/kotlin-app-template/actions/workflows/ci.yml/badge.svg"/></a>
   <a href="https://sonarcloud.io/dashboard?id=ashtanko_kotlin-app-template"><img alt="Quality Gate Status" src="https://sonarcloud.io/api/project_badges/measure?project=ashtanko_kotlin-app-template&metric=alert_status"/></a>
   <a href="https://sonarcloud.io/dashboard?id=ashtanko_kotlin-app-template"><img alt="Lines of Code" src="https://sonarcloud.io/api/project_badges/measure?project=ashtanko_kotlin-app-template&metric=ncloc"/></a>
   <a href="https://sonarcloud.io/dashboard?id=ashtanko_kotlin-app-template"><img alt="Coverage" src="https://sonarcloud.io/api/project_badges/measure?project=ashtanko_kotlin-app-template&metric=coverage"/></a>
   <a href="https://codecov.io/gh/ashtanko/kotlin-app-template"><img alt="Codecov" src="https://codecov.io/gh/ashtanko/kotlin-app-template/branch/main/graph/badge.svg?token=JEU9EIJMHA"/></a>
+  <a href="https://www.codefactor.io/repository/github/ashtanko/kotlin-app-template"><img alt="CodeFactor" src="https://www.codefactor.io/repository/github/ashtanko/kotlin-app-template/badge"/></a>
+  <a href="https://app.codacy.com/project/badge/Grade/4935d531e41241faa0ce25eeddb67533"><img alt="CodeFactor" src="https://app.codacy.com/gh/ashtanko/kotlin-app-template/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade"/></a>
 </p><br>
 
 A simple Github template that lets you create an **Kotlin** project and be up and running in a **few seconds**.
