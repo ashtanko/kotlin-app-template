@@ -1,34 +1,47 @@
 [versions]
-coroutines = "1.6.4"
-junit = "5.8.2"
-kotlin = "1.8.10"
-mockk = "1.12.3"
-detekt = "1.21.0"
-dokka = "1.7.10"
-spotless = "6.9.1"
-dependency = "1.12.0"
-pitest = "1.7.4"
-ktlint = "0.46.1"
+coroutines = "1.9.0-RC"    # https://github.com/Kotlin/kotlinx.coroutines
+junit = "5.11.0-M2"        # https://junit.org/junit5/
+kotlin = "2.0.0"           # https://github.com/JetBrains/kotlin
+mockk = "1.13.11"          # https://mockk.io/
+detekt = "1.23.6"          # https://github.com/detekt/detekt
+dokka = "1.9.10"           # https://github.com/Kotlin/dokka
+spotless = "7.0.0.BETA1"   # https://github.com/diffplug/spotless
+dependency = "1.32.0"      # https://github.com/autonomousapps/dependency-analysis-gradle-plugin
+pitest = "1.15.0"          # https://plugins.gradle.org/plugin/info.solidsoft.pitest
+pinterestKtlint = "0.49.0" # https://github.com/pinterest/ktlint
+ktlint = "12.1.1"          # https://github.com/JLLeitschuh/ktlint-gradle
+assertj = "3.26.0"         # https://mvnrepository.com/artifact/org.assertj/assertj-core
+kover = "0.7.5"            # https://github.com/Kotlin/kotlinx-kover
+diktat = "2.0.0"           # https://github.com/saveourtool/diktat
+mockito = "5.12.0"         # https://mvnrepository.com/artifact/org.mockito/mockito-core
+mockito_kotlin = "2.0.0"   # https://mvnrepository.com/artifact/com.nhaarman.mockitokotlin2/mockito-kotlin
 
 [libraries]
 junit = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
 
 kotlin-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8", version.ref = "coroutines" }
-kotlin-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8", version.ref = "kotlin" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
 kotlin-gradle = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
-kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 detekt_formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
-ktlint = { module = "com.pinterest:ktlint", version.ref = "ktlint" }
-
+pinterestKtlint = { module = "com.pinterest:ktlint", version.ref = "pinterestKtlint" }
+assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+
+# test libs
+kotlin-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+mockito = { module = "org.mockito:mockito-core", version.ref = "mockito" }
+mockito-kotlin = { module = "com.nhaarman.mockitokotlin2:mockito-kotlin", version.ref = "mockito_kotlin" }
 
 [plugins]
 kt-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
-kt-serializatin = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kt-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 dependency-analysis = { id = "com.autonomousapps.dependency-analysis", version.ref = "dependency" }
 pitest = { id = "info.solidsoft.pitest", version.ref = "pitest" }
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
+diktat = { id = "com.saveourtool.diktat", version.ref = "diktat" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }

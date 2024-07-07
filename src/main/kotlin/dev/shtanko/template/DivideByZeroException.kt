@@ -17,8 +17,8 @@
 package dev.shtanko.template
 
 /**
- * Some kDoc
- * @param numerator
- * @throws Exception
+ * Exception thrown when an attempt to divide by zero occurs.
+ *
+ * @property numerator The numerator in the division operation that triggered the exception.
  */
 class DivideByZeroException(val numerator: Int) : Exception()

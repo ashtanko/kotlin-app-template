@@ -1,37 +1,25 @@
-/*
- * Copyright 2022 Oleksii Shtanko
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import io.gitlab.arturbosch.detekt.DetektCreateBaselineTask
-import java.util.Locale
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0
+import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
 
-val projectJvmTarget = "11"
+val projectJvmTarget = 17
 val satisfyingNumberOfCores = Runtime.getRuntime().availableProcessors().div(2).takeIf { it > 0 } ?: 1
-val ktlint: Configuration by configurations.creating
-val isK2Enabled = true
-val k2CompilerArg = if (isK2Enabled) listOf("-Xuse-k2") else emptyList()
+val ktLintConfig: Configuration by configurations.creating
+val outputDir = "${project.layout.buildDirectory}/reports/ktlint/"
+val inputFiles = project.fileTree(mapOf("dir" to "src", "include" to "**/*.kt"))
+val kotlinVersion = KOTLIN_2_0
 
 fun isLinux(): Boolean {
-    val osName = System.getProperty("os.name").toLowerCase(Locale.ROOT)
+    val osName = System.getProperty("os.name").lowercase()
     return listOf("linux", "mac os", "macos").contains(osName)
 }
 
 @Suppress("DSL_SCOPE_VIOLATION") // https://youtrack.jetbrains.com/issue/KTIJ-19369
 plugins {
+    base
     application
     jacoco
+    id("com.github.nbaztec.coveralls-jacoco") version "1.2.16"
     idea
     alias(libs.plugins.kt.jvm)
     alias(libs.plugins.detekt)
@@ -39,6 +27,13 @@ plugins {
     alias(libs.plugins.spotless)
     alias(libs.plugins.dependency.analysis)
     alias(libs.plugins.pitest)
+    alias(libs.plugins.kover)
+    alias(libs.plugins.diktat)
+    alias(libs.plugins.ktlint)
+}
+
+jacoco {
+    toolVersion = "0.8.11"
 }
 
 repositories {
@@ -52,41 +47,49 @@ application {
     mainClass.set("link.kotlin.scripts.Application")
 }
 
-val outputDir = "${project.buildDir}/reports/ktlint/"
-val inputFiles = project.fileTree(mapOf("dir" to "src", "include" to "**/*.kt"))
-
-val ktlintCheck by tasks.creating(JavaExec::class) {
-    inputs.files(inputFiles)
-    outputs.dir(outputDir)
-
-    description = "Check Kotlin code style."
-    classpath = ktlint
-    mainClass.set("com.pinterest.ktlint.Main")
-    args = listOf("src/**/*.kt")
+configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
+    debug.set(true)
+    verbose.set(true)
+    android.set(false)
+    outputToConsole.set(true)
+    outputColorName.set("RED")
+    ignoreFailures.set(true)
+    enableExperimentalRules.set(true)
+    reporters {
+        reporter(ReporterType.PLAIN)
+        reporter(ReporterType.CHECKSTYLE)
+        reporter(ReporterType.JSON)
+        reporter(ReporterType.HTML)
+    }
+    kotlinScriptAdditionalPaths {
+        include(fileTree("scripts/"))
+    }
+    filter {
+        exclude("**/generated/**")
+        include("**/kotlin/**")
+    }
 }
 
-val ktlintFormat by tasks.creating(JavaExec::class) {
-    inputs.files(inputFiles)
-    outputs.dir(outputDir)
-
-    description = "Fix Kotlin code style deviations."
-    classpath = ktlint
-    mainClass.set("com.pinterest.ktlint.Main")
-    args = listOf("-F", "src/**/*.kt")
+diktat {
+    inputs {
+        include("src/main/**/*.kt")
+        exclude("**/generated/**")
+    }
 }
 
 plugins.withId("info.solidsoft.pitest") {
     configure<info.solidsoft.gradle.pitest.PitestPluginExtension> {
-        jvmArgs.set(listOf("-Xmx1024m"))
+        jvmArgs.set(listOf("-Xmx2048m"))
         avoidCallsTo.set(setOf("kotlin.jvm.internal", "kotlin.Result"))
-        targetClasses.set(setOf("dev.shtanko.template.*"))
-        targetTests.set(setOf("dev.shtanko.template.*"))
-        pitestVersion.set("1.4.11")
+        targetClasses.set(setOf("dev.shtanko.*"))
+        targetTests.set(setOf("dev.shtanko.*"))
+        pitestVersion.set("1.15.0")
         verbose.set(true)
+        timestampedReports.set(false)
         threads.set(System.getenv("PITEST_THREADS")?.toInt() ?: satisfyingNumberOfCores)
         outputFormats.set(setOf("XML", "HTML"))
         testPlugin.set("junit5")
-        junit5PluginVersion.set("0.12")
+        junit5PluginVersion.set("1.0.0")
     }
 }
 
@@ -97,9 +100,9 @@ spotless {
                 mapOf(
                     "dir" to ".",
                     "include" to listOf("**/*.kt"),
-                    "exclude" to listOf("**/build/**", "**/spotless/*.kt")
-                )
-            )
+                    "exclude" to listOf("**/build/**", "**/spotless/*.kt"),
+                ),
+            ),
         )
         trimTrailingWhitespace()
         indentWithSpaces()
@@ -114,7 +117,45 @@ subprojects {
     apply<com.diffplug.gradle.spotless.SpotlessPlugin>()
 }
 
+koverReport {
+    verify {
+        rule {
+            minBound(80)
+        }
+    }
+}
+
 tasks {
+    withType<Test> {
+        maxParallelForks = 1
+        jvmArgs(
+            "--add-opens",
+            "java.base/jdk.internal.misc=ALL-UNNAMED",
+            "--add-exports",
+            "java.base/jdk.internal.util=ALL-UNNAMED",
+            "--add-exports",
+            "java.base/sun.security.action=ALL-UNNAMED",
+        )
+    }
+    compileKotlin {
+        compilerOptions {
+            apiVersion.set(kotlinVersion)
+            languageVersion.set(kotlinVersion)
+        }
+    }
+    kotlin {
+        jvmToolchain(projectJvmTarget)
+    }
+    jacocoTestCoverageVerification {
+        violationRules {
+            rule {
+                limit {
+                    minimum = "0.5".toBigDecimal()
+                }
+            }
+        }
+    }
+
     register<Copy>("copyGitHooks") {
         description = "Copies the git hooks from scripts/git-hooks to the .git folder."
         group = "git hooks"
@@ -151,18 +192,19 @@ tasks {
     }
 
     jacocoTestReport {
+        dependsOn(test)
         reports {
-            html.required.set(true)
-            xml.required.set(true)
-            xml.outputLocation.set(file("$buildDir/reports/jacoco/report.xml"))
+            listOf(
+                html,
+                xml,
+                csv,
+            ).forEach { it.required.set(true) }
         }
-        executionData(file("build/jacoco/test.exec"))
     }
 
     withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-        kotlinOptions {
-            jvmTarget = projectJvmTarget
-            freeCompilerArgs = freeCompilerArgs + "-Xuse-experimental=kotlin.Experimental" + k2CompilerArg
+        compilerOptions {
+            apiVersion.set(KOTLIN_2_0)
         }
     }
 
@@ -171,51 +213,56 @@ tasks {
         parallel = true
         baseline.set(file("$rootDir/config/detekt/detekt-baseline.xml"))
         config.from(file("config/detekt/detekt.yml"))
-        jvmTarget = projectJvmTarget
+        jvmTarget = "$projectJvmTarget"
 
         setSource(files("src/main/kotlin", "src/test/kotlin"))
-        include("**/*.kt")
-        include("**/*.kts")
-        exclude(".*/resources/.*")
-        exclude(".*/build/.*")
-        exclude("/versions.gradle.kts")
+        setOf(
+            "**/*.kt",
+            "**/*.kts",
+            ".*/resources/.*",
+            ".*/build/.*",
+            "/versions.gradle.kts",
+        ).forEach {
+            include(it)
+        }
 
         reports {
-            xml.required.set(true)
-            html.required.set(true)
-            txt.required.set(true)
-            md.required.set(true)
+            reports.apply {
+                listOf(xml, html, txt, md).forEach { it.required.set(true) }
+            }
         }
     }
 
     withType<DetektCreateBaselineTask> {
-        jvmTarget = projectJvmTarget
+        jvmTarget = "$projectJvmTarget"
     }
 
     withType<Test>().configureEach {
-        jvmArgs = listOf(
-            "-Dkotlintest.tags.exclude=Integration,EndToEnd,Performance",
-        )
+        jvmArgs =
+            listOf(
+                "-Dkotlintest.tags.exclude=Integration,EndToEnd,Performance",
+            )
         testLogging {
             events("passed", "skipped", "failed")
         }
         testLogging.showStandardStreams = true
         useJUnitPlatform()
-    }
-
-    withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-        kotlinOptions {
-            jvmTarget = projectJvmTarget
-        }
+        finalizedBy(withType(JacocoReport::class.java))
     }
 }
 
 dependencies {
-    implementation(libs.kotlin.stdlib)
-    implementation(libs.kotlin.reflect)
-    implementation(libs.kotlin.coroutines)
-    ktlint(libs.ktlint)
+    libs.apply {
+        kotlin.apply {
+            implementation(stdlib)
+            implementation(reflect)
+            implementation(coroutines)
+        }
 
-    testImplementation(libs.mockk)
-    testImplementation(libs.junit)
+        testImplementation(mockk)
+        testImplementation(junit)
+        testImplementation(assertj)
+        testImplementation(mockito)
+        testImplementation(mockito.kotlin)
+    }
 }
