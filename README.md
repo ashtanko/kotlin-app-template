@@ -26,7 +26,7 @@ place.
 - Examples of JUnit5 tests.
 - 100% Gradle Kotlin DSL setup.
 - CI Setup with GitHub Actions.
-- Kotlin Static Analysis via `detekt` and `ktlint` and `spotless`.
+- Aggressive Kotlin Static Analysis via `detekt`, `ktlint`, `diktat` and `spotless`.
 - Issues Template (bug report + feature request).
 - Documentation Engine for Kotlin via `dokka`
 
