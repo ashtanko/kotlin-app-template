@@ -1,4 +1,5 @@
 import io.gitlab.arturbosch.detekt.DetektCreateBaselineTask
+import org.gradle.kotlin.dsl.apply
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0
 import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
 
@@ -117,10 +118,12 @@ subprojects {
     apply<com.diffplug.gradle.spotless.SpotlessPlugin>()
 }
 
-koverReport {
-    verify {
-        rule {
-            minBound(80)
+kover {
+    reports {
+        verify {
+            rule {
+                minBound(80)
+            }
         }
     }
 }
@@ -260,7 +263,10 @@ dependencies {
         }
 
         testImplementation(mockk)
-        testImplementation(junit)
+        junit.apply {
+            testImplementation(api)
+            testImplementation(params)
+        }
         testImplementation(assertj)
         testImplementation(mockito)
         testImplementation(mockito.kotlin)
