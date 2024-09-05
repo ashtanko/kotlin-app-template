@@ -7,7 +7,7 @@ default:
 	 make check && make md
 
 md:
-	truncate -s0 README.md && cat config/main.md >> README.md && cat build/reports/detekt/detekt.md >> README.md
+	truncate -s0 README.md && cat config/main.md >> README.md && cat build/reports/detekt/detekt.md >> README.md && cat config/license.md >> README.md
 
 all:
 	make check && ./gradlew build && md
