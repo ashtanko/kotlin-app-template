@@ -72,7 +72,7 @@ Feel free to open a issue or submit a pull request for any bugs/improvements.
 
 ## Findings (0)
 
-generated with [detekt version 1.23.6](https://detekt.dev/) on 2024-09-05 13:01:09 UTC
+generated with [detekt version 1.23.6](https://detekt.dev/) on 2024-09-18 21:00:45 UTC
 
 # License
 
