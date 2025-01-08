@@ -30,4 +30,7 @@ kover:
 diktat:
 	./gradlew diktatCheck
 
+detekt:
+	./gradlew detekt
+
 .DEFAULT_GOAL := default

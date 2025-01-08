@@ -5,9 +5,6 @@ import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
 
 val projectJvmTarget = 17
 val satisfyingNumberOfCores = Runtime.getRuntime().availableProcessors().div(2).takeIf { it > 0 } ?: 1
-val ktLintConfig: Configuration by configurations.creating
-val outputDir = "${project.layout.buildDirectory}/reports/ktlint/"
-val inputFiles = project.fileTree(mapOf("dir" to "src", "include" to "**/*.kt"))
 val kotlinVersion = KOTLIN_2_0
 
 fun isLinux(): Boolean {
