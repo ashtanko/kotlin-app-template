@@ -54,7 +54,7 @@ Feel free to open a issue or submit a pull request for any bugs/improvements.
 
 * 102 source lines of code (sloc)
 
-* 67 logical lines of code (lloc)
+* 68 logical lines of code (lloc)
 
 * 63 comment lines of code (cloc)
 
@@ -66,13 +66,13 @@ Feel free to open a issue or submit a pull request for any bugs/improvements.
 
 * 61% comment source ratio
 
-* 223 mcc per 1,000 lloc
+* 220 mcc per 1,000 lloc
 
 * 0 code smells per 1,000 lloc
 
 ## Findings (0)
 
-generated with [detekt version 1.23.7](https://detekt.dev/) on 2025-01-08 00:08:53 UTC
+generated with [detekt version 1.23.7](https://detekt.dev/) on 2025-02-01 15:24:03 UTC
 
 # License
 

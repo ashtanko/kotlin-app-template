@@ -43,7 +43,7 @@ class ExampleTest {
         assertAll(
             Executable { assertEquals(1, calculator.square(1)) },
             Executable { assertEquals(4, calculator.square(2)) },
-            Executable { assertEquals(9, calculator.square(3)) }
+            Executable { assertEquals(9, calculator.square(3)) },
         )
     }
 
@@ -52,7 +52,7 @@ class ExampleTest {
         assertAll(
             Executable { assertEquals(2.0, calculator.divide(4, 2)) },
             Executable { assertEquals(1.0, calculator.divide(1, 1)) },
-            Executable { assertEquals(1.5, calculator.divide(3, 2)) }
+            Executable { assertEquals(1.5, calculator.divide(3, 2)) },
         )
     }
 
@@ -80,7 +80,7 @@ class ExampleTest {
         },
         DynamicTest.dynamicTest("when I calculate 3^2 then I get 9") {
             assertEquals(9, calculator.square(3))
-        }
+        },
     )
 
     @TestFactory
@@ -89,7 +89,7 @@ class ExampleTest {
         2 to 4,
         3 to 9,
         4 to 16,
-        5 to 25
+        5 to 25,
     ).map { (input, expected) ->
         DynamicTest.dynamicTest("when I calculate $input^2 then I get $expected") {
             assertEquals(expected, calculator.square(input))
@@ -100,7 +100,7 @@ class ExampleTest {
     @CsvSource(
         "1, 1",
         "2, 4",
-        "3, 9"
+        "3, 9",
     )
     fun `Squares test`(input: Int, expected: Int) {
         assertEquals(expected, input * input)
