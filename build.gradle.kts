@@ -87,7 +87,7 @@ plugins.withId("info.solidsoft.pitest") {
         threads.set(System.getenv("PITEST_THREADS")?.toInt() ?: satisfyingNumberOfCores)
         outputFormats.set(setOf("XML", "HTML"))
         testPlugin.set("junit5")
-        junit5PluginVersion.set("1.0.0")
+        junit5PluginVersion = "1.2.1"
     }
 }
 
@@ -252,6 +252,7 @@ tasks {
 }
 
 dependencies {
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     libs.apply {
         kotlin.apply {
             implementation(stdlib)
