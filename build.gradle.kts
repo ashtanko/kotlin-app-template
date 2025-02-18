@@ -17,7 +17,7 @@ plugins {
     base
     application
     jacoco
-    id("com.github.nbaztec.coveralls-jacoco") version "1.2.16"
+    id("com.github.nbaztec.coveralls-jacoco") version "1.2.20"
     idea
     alias(libs.plugins.kt.jvm)
     alias(libs.plugins.detekt)
