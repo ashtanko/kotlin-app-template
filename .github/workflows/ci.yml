@@ -13,6 +13,11 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+permissions:
+  actions: write
+  contents: read
+  id-token: write
+
 jobs:
   build:
     name: Build
@@ -86,15 +91,12 @@ jobs:
           files: ./build/reports/kover/report.xml
           verbose: true
 
-      - name: Upload test coverage to Code Climate
-        uses: paambaati/codeclimate-action@v9.0.0
-        env:
-          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
-          JACOCO_SOURCE_PATH: "${{github.workspace}}/src/main/kotlin"
+      - name: Upload test coverage to qlty
+        uses: qltysh/qlty-action/coverage@v1
         with:
-          coverageCommand: ./gradlew test jacocoTestReport
-          coverageLocations: ./build/reports/jacoco/test/jacocoTestReport.xml:jacoco
-          debug: true
+          oidc: true
+          files: build/reports/jacoco/test/jacocoTestReport.xml
+          add-prefix: src/main/kotlin
       - name: Run codacy-coverage-reporter
         uses: codacy/codacy-coverage-reporter-action@v1
         with:

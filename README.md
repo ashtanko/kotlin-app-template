@@ -10,8 +10,8 @@
   <a href="https://www.codefactor.io/repository/github/ashtanko/kotlin-app-template"><img alt="CodeFactor" src="https://www.codefactor.io/repository/github/ashtanko/kotlin-app-template/badge"/></a>
   <a href="https://app.codacy.com/gh/ashtanko/kotlin-app-template/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade"><img alt="Codacy Badge" src="https://app.codacy.com/project/badge/Grade/4935d531e41241faa0ce25eeddb67533"/></a>
   <a href="https://app.codacy.com/gh/ashtanko/kotlin-app-template/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage"><img alt="Codacy Badge" src="https://app.codacy.com/project/badge/Coverage/4935d531e41241faa0ce25eeddb67533"/></a>
-  <a href="https://codeclimate.com/github/ashtanko/kotlin-app-template/maintainability"><img alt="Maintainability" src="https://api.codeclimate.com/v1/badges/9448fad9e03dd6eee651/maintainability"/></a>
-  <a href="https://codeclimate.com/github/ashtanko/kotlin-app-template/test_coverage"><img alt="Test Coverage" src="https://api.codeclimate.com/v1/badges/9448fad9e03dd6eee651/test_coverage"/></a>
+  <a href="https://qlty.sh/gh/ashtanko/projects/kotlin-app-template"><img alt="Maintainability" src="https://qlty.sh/gh/ashtanko/projects/kotlin-app-template/maintainability.svg"/></a>
+  <a href="https://qlty.sh/gh/ashtanko/projects/kotlin-app-template"><img alt="Test Coverage" src="https://qlty.sh/gh/ashtanko/projects/kotlin-app-template/coverage.svg"/></a>
 </p><br>
 
 A simple Github template that lets you create an **Kotlin** project and be up and running in a **few seconds**.
@@ -72,7 +72,7 @@ Feel free to open a issue or submit a pull request for any bugs/improvements.
 
 ## Findings (0)
 
-generated with [detekt version 1.23.7](https://detekt.dev/) on 2025-02-01 15:24:03 UTC
+generated with [detekt version 1.23.8](https://detekt.dev/) on 2025-08-04 22:23:50 UTC
 
 # License
 
