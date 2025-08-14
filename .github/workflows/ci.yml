@@ -72,17 +72,6 @@ jobs:
       - name: Generate Test Coverage Xml Report
         run: ./gradlew koverXmlReport
 
-      - name: Coveralls Parallel
-        uses: coverallsapp/github-action@v2
-        with:
-          parallel: true
-          flag-name: run-${{ join(matrix.*, '-') }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          file: ./build/reports/jacoco/test/jacocoTestReport.xml
-          debug: false
-          measure: true
-          format: jacoco
-
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5.4.3
         with:
@@ -91,12 +80,6 @@ jobs:
           files: ./build/reports/kover/report.xml
           verbose: true
 
-      - name: Upload test coverage to qlty
-        uses: qltysh/qlty-action/coverage@v2
-        with:
-          oidc: true
-          files: build/reports/jacoco/test/jacocoTestReport.xml
-          add-prefix: src/main/kotlin
       - name: Run codacy-coverage-reporter
         uses: codacy/codacy-coverage-reporter-action@v1
         with:
