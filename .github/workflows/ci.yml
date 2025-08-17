@@ -70,7 +70,7 @@ jobs:
           max-allowed-issues: 100
 
       - name: Generate Test Coverage Xml Report
-        run: ./gradlew koverXmlReport
+        run: ./gradlew koverXmlReport koverHtmlReport
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5.4.3
