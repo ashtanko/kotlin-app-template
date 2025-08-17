@@ -70,7 +70,7 @@ jobs:
           max-allowed-issues: 100
 
       - name: Generate Test Coverage Xml Report
-        run: ./gradlew koverXmlReport
+        run: ./gradlew koverXmlReport koverHtmlReport
 
       - name: Coveralls Parallel
         uses: coverallsapp/github-action@v2

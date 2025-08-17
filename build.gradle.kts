@@ -117,6 +117,26 @@ subprojects {
 
 kover {
     reports {
+        filters {
+            excludes {
+                // exclusions for all report variants
+            }
+            includes {
+                // inclusions for all report variants
+            }
+        }
+        total {
+            // overriding filters only for total report
+            filters {
+                excludes {
+                    // exclusions only for total report
+                }
+                includes {
+                    // inclusions only for total report
+                }
+            }
+
+        }
         verify {
             rule {
                 minBound(80)
