@@ -69,15 +69,18 @@ jobs:
           upload: true
           max-allowed-issues: 100
 
-      - name: Generate Test Coverage Xml Report
+      - name: Generate Kover Test Coverage Xml Report
         run: ./gradlew koverXmlReport
+
+      - name: Generate Jacoco Test Coverage Xml Report
+        run: ./gradlew jacocoTestReport
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5.4.3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          directory: ./build/reports/kover/
-          files: ./build/reports/kover/report.xml
+          directory: ./build/reports/jacoco/
+          files: ./build/reports/jacoco/test/jacocoTestReport.xml
           verbose: true
 
       - name: Run codacy-coverage-reporter
