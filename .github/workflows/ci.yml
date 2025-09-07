@@ -76,7 +76,7 @@ jobs:
         run: ./gradlew jacocoTestReport
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5.5.0
+        uses: codecov/codecov-action@v5.5.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           directory: ./build/reports/jacoco/
