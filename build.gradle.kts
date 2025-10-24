@@ -1,11 +1,11 @@
 import io.gitlab.arturbosch.detekt.DetektCreateBaselineTask
 import org.gradle.kotlin.dsl.apply
-import org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_2
 import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
 
 val projectJvmTarget = 17
 val satisfyingNumberOfCores = Runtime.getRuntime().availableProcessors().div(2).takeIf { it > 0 } ?: 1
-val kotlinVersion = KOTLIN_2_0
+val kotlinVersion = KOTLIN_2_2
 
 fun isLinux(): Boolean {
     val osName = System.getProperty("os.name").lowercase()
@@ -204,7 +204,7 @@ tasks {
 
     withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
         compilerOptions {
-            apiVersion.set(KOTLIN_2_0)
+            apiVersion.set(kotlinVersion)
         }
     }
 
