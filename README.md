@@ -6,7 +6,7 @@
   <a href="https://sonarcloud.io/dashboard?id=ashtanko_kotlin-app-template"><img alt="Quality Gate Status" src="https://sonarcloud.io/api/project_badges/measure?project=ashtanko_kotlin-app-template&metric=alert_status"/></a>
   <a href="https://sonarcloud.io/dashboard?id=ashtanko_kotlin-app-template"><img alt="Lines of Code" src="https://sonarcloud.io/api/project_badges/measure?project=ashtanko_kotlin-app-template&metric=ncloc"/></a>
   <a href="https://sonarcloud.io/dashboard?id=ashtanko_kotlin-app-template"><img alt="Coverage" src="https://sonarcloud.io/api/project_badges/measure?project=ashtanko_kotlin-app-template&metric=coverage"/></a>
-  <a href="https://codecov.io/gh/ashtanko/kotlin-app-template"><img alt="Codecov" src="https://codecov.io/gh/ashtanko/kotlin-app-template/branch/main/graph/badge.svg?token=JEU9EIJMHA"/></a>
+  <a href="https://codecov.io/gh/ashtanko/kotlin-app-template"><img alt="Codecov" src="https://codecov.io/gh/ashtanko/kotlin-app-template/graph/badge.svg?token=FQFL6U7YL0"/></a>
   <a href="https://www.codefactor.io/repository/github/ashtanko/kotlin-app-template"><img alt="CodeFactor" src="https://www.codefactor.io/repository/github/ashtanko/kotlin-app-template/badge"/></a>
   <a href="https://app.codacy.com/gh/ashtanko/kotlin-app-template/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade"><img alt="Codacy Badge" src="https://app.codacy.com/project/badge/Grade/4935d531e41241faa0ce25eeddb67533"/></a>
   <a href="https://app.codacy.com/gh/ashtanko/kotlin-app-template/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage"><img alt="Codacy Badge" src="https://app.codacy.com/project/badge/Coverage/4935d531e41241faa0ce25eeddb67533"/></a>
@@ -48,9 +48,9 @@ Feel free to open a issue or submit a pull request for any bugs/improvements.
 
 ## Complexity Report
 
-* 190 lines of code (loc)
+* 189 lines of code (loc)
 
-* 102 source lines of code (sloc)
+* 101 source lines of code (sloc)
 
 * 68 logical lines of code (lloc)
 
@@ -62,7 +62,7 @@ Feel free to open a issue or submit a pull request for any bugs/improvements.
 
 * 0 number of total code smells
 
-* 61% comment source ratio
+* 62% comment source ratio
 
 * 220 mcc per 1,000 lloc
 
@@ -70,7 +70,7 @@ Feel free to open a issue or submit a pull request for any bugs/improvements.
 
 ## Findings (0)
 
-generated with [detekt version 1.23.8](https://detekt.dev/) on 2025-08-14 21:48:24 UTC
+generated with [detekt version 1.23.8](https://detekt.dev/) on 2025-10-24 16:07:23 UTC
 
 # License
 

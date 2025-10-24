@@ -25,7 +25,6 @@ import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Tags
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.function.Executable
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 
@@ -41,18 +40,18 @@ class ExampleTest {
     @Test
     fun `The square of a number should be equal to that number multiplied in itself`() {
         assertAll(
-            Executable { assertEquals(1, calculator.square(1)) },
-            Executable { assertEquals(4, calculator.square(2)) },
-            Executable { assertEquals(9, calculator.square(3)) },
+            { assertEquals(1, calculator.square(1)) },
+            { assertEquals(4, calculator.square(2)) },
+            { assertEquals(9, calculator.square(3)) },
         )
     }
 
     @Test
     fun `Divide test`() {
         assertAll(
-            Executable { assertEquals(2.0, calculator.divide(4, 2)) },
-            Executable { assertEquals(1.0, calculator.divide(1, 1)) },
-            Executable { assertEquals(1.5, calculator.divide(3, 2)) },
+            { assertEquals(2.0, calculator.divide(4, 2)) },
+            { assertEquals(1.0, calculator.divide(1, 1)) },
+            { assertEquals(1.5, calculator.divide(3, 2)) },
         )
     }
 
