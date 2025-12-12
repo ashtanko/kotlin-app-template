@@ -2,7 +2,7 @@
 kotlin = "2.2.21"          # https://github.com/JetBrains/kotlin
 coroutines = "1.10.2"      # https://github.com/Kotlin/kotlinx.coroutines
 junit = "6.0.1"           # https://junit.org/junit5 | https://central.sonatype.com/artifact/org.junit.jupiter/junit-jupiter
-mockk = "1.14.6"          # https://mockk.io | https://central.sonatype.com/search?q=mockk&smo=true
+mockk = "1.14.7"          # https://mockk.io | https://central.sonatype.com/search?q=mockk&smo=true
 detekt = "1.23.8"          # https://github.com/detekt/detekt
 dokka = "2.1.0"            # https://github.com/Kotlin/dokka
 spotless = "8.1.0"         # https://github.com/diffplug/spotless
