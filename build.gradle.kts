@@ -261,9 +261,11 @@ dependencies {
         }
 
         testImplementation(mockk)
+        testImplementation(mockk.bdd)
         junit.apply {
             testImplementation(api)
             testImplementation(params)
+            testRuntimeOnly(engine)
         }
         testImplementation(assertj)
         testImplementation(mockito)

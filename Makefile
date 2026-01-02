@@ -33,4 +33,7 @@ diktat:
 detekt:
 	./gradlew detekt
 
+bump-gradle:
+	chmod +x gradlew && ./gradlew wrapper --gradle-version 9.0
+
 .DEFAULT_GOAL := default
