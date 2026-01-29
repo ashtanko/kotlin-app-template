@@ -5,7 +5,7 @@ junit = "6.0.2"                  # https://junit.org/junit5 | https://central.so
 mockk = "1.14.7"                 # https://mockk.io | https://central.sonatype.com/search?q=mockk&smo=true
 detekt = "1.23.8"                # https://github.com/detekt/detekt
 dokka = "2.1.0"                  # https://github.com/Kotlin/dokka
-spotless = "8.2.0"               # https://github.com/diffplug/spotless
+spotless = "8.2.1"               # https://github.com/diffplug/spotless
 dependency = "1.33.0"            # https://github.com/autonomousapps/dependency-analysis-gradle-plugin
 pitest = "1.19.0-rc.3"           # https://plugins.gradle.org/plugin/info.solidsoft.pitest | https://search.maven.org/artifact/org.pitest/pitest
 pinterestKtlint = "0.51.0-FINAL" # https://github.com/pinterest/ktlint
