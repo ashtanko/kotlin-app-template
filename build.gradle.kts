@@ -270,5 +270,7 @@ dependencies {
         testImplementation(assertj)
         testImplementation(mockito)
         testImplementation(mockito.kotlin)
+        testImplementation(kotlin.coroutines.test)
     }
+    testImplementation(libs.turbine)
 }

@@ -84,12 +84,6 @@ Before submitting changes, ensure:
 3. **Tests Pass**: `make test` completes successfully.
 4. **Documentation**: Code is documented, and `make md` has been run if `README.md` components changed.
 
-### Formatting
-- Use 4 spaces for indentation.
-- Follow [Official Kotlin Style Guide](https://kotlinlang.org/docs/coding-conventions.html).
-- Keep line length under 120 characters where possible.
-- Use `spotlessApply` to fix formatting issues automatically.
-
 ## Key Files and Directories
 
 - `build.gradle.kts`: Primary Gradle build configuration.
@@ -106,8 +100,15 @@ Before submitting changes, ensure:
 
 ### General Guidelines
 - Use 4 spaces for indentation.
-- Follow the [Official Kotlin Style Guide](https://kotlinlang.org/docs/coding-conventions.html).
+- Follow the [Official Kotlin Style Guide](https://kotlinlang.org/docs/coding-conventions.html) and [Android Kotlin Style Guide](https://developer.android.com/kotlin/style-guide).
 - Keep line length under 120 characters where possible.
+- **Naming Rules**:
+  - Packages are always lowercase and do not use underscores (`org.example.project`).
+  - Classes and Objects use PascalCase (`DeclarationProcessor`).
+  - Functions and Properties use camelCase (`processDeclarations`, `propertyCount`).
+  - Constants (const val or val with deeply immutable data without custom getter) use UPPER_SNAKE_CASE (`MAX_COUNT`).
+  - Backing properties use an underscore prefix (`private val _elementList`).
+  - Test function names can use spaces enclosed in backticks (``fun `should return true`()``) but are not supported on Android, though permitted in this JVM backend template.
 
 ## Development Conventions
 
@@ -117,12 +118,178 @@ Before submitting changes, ensure:
 - **Git Hooks:** Pre-commit hooks are located in `scripts/git-hooks/`. They are automatically installed to `.git/hooks/` during the Gradle `clean` task or when running `make check`. They run static analysis before every commit.
 - **Static Analysis Baseline:** A Detekt baseline is maintained at `config/detekt/detekt-baseline.xml` to manage existing issues.
 
-### Code Style
+### Code Style & Best Practices (2025 Standards)
 - **Prefer `val` over `var`**: Immutability is preferred. Only use `var` if absolutely necessary.
-- **Expression Functions**: Use `fun sum(a: Int, b: Int) = a + b` for simple one-liners.
+- **Use Lazy Initialization**: Use `by lazy { ... }` to defer object creation until it's actually needed, saving memory.
+- **Utilize Scope Functions (`let`, `run`, `with`, `apply`, `also`) appropriately**:
+  - Use `let` for null checks and executing operations on non-null objects.
+  - Use `apply` to configure objects.
+  - Avoid deeply nested scope functions to maintain readability.
+- **Leverage Coroutines for Concurrency**: Use Kotlin Coroutines and Flows for efficient asynchronous programming instead of callbacks or raw threads.
+- **Use Sealed Classes for State Management**: Represent restricted class hierarchies (like UI states: `Loading`, `Success`, `Error`) with `sealed class` or `sealed interface` for safer `when` expressions.
+- **Optimize with Inline Functions & Reified Types**: Use `inline` for higher-order functions to prevent lambda object allocations, and `reified` to retain type information at runtime.
+- **Use Data Classes for Models**: Leverage `data class` for automatically generated `equals()`, `hashCode()`, `toString()`, and `copy()` methods.
+- **Expression Functions**: Use `fun sum(a: Int, b: Int) = a + b` for simple one-liners. When a function returns a single expression, prefer expression body over block body.
 - **Trailing Commas**: Use trailing commas for better git diffs in multi-line parameter lists.
 - **Nullable Types**: Use safe calls `?.` and Elvis operator `?:` instead of the non-null assertion `!!`.
 - **Named Arguments**: Use named arguments for functions with many parameters or boolean flags.
+
+### Coroutines Best Practices
+- **Inject Dispatchers**: Never hardcode `Dispatchers.IO`, `Dispatchers.Default`, or `Dispatchers.Main`. Inject them via constructor parameters to make testing deterministic.
+- **Suspend Functions should be Main-Safe**: A `suspend` function should always be safe to call from the main thread. If it needs to do heavy work or I/O, it should shift the execution context internally using `withContext(Dispatchers.IO)`.
+- **Avoid Cancelling `Job` directly**: Cancel a `CoroutineScope` instead. Cancelling a `Job` means you have to create a new `Job` to start new coroutines.
+- **Exception Handling**: Use `CoroutineExceptionHandler` for unhandled exceptions in top-level coroutines (like those launched by `viewModelScope.launch`), but prefer `try/catch` around specific suspend calls where you want to gracefully recover.
+- **Use `yield()` or `ensureActive()`**: In long-running CPU-intensive loops inside coroutines, regularly check for cancellation.
+- **Use Structured Concurrency**: Use coroutine scopes and structured concurrency to ensure all coroutines finish before their parent scope ends.
+- **Use coroutineScope or supervisorScope for short-lived tasks**.
+- **Avoid GlobalScope**. Global scope is used to launch top-level coroutines operating on the whole application lifetime and are not canceled prematurely. Over-usage can lead to unpredictable behavior and memory leaks.
+- **Inject Dispatchers**.
+- **Suspend functions should be Main-Safe**. A `suspend` function should always be safe to call from the main thread. If it needs to do heavy work or I/O, it should shift the execution context.
+- **Prefer the Main dispatcher for Root Coroutine**.
+
+✅ **Good**: DO inject an external scope instead of using GlobalScope. GlobalScope can be used indirectly. Here as a default parameter makes sense.
+
+```kotlin
+// ✅ DO inject an external scope instead of using GlobalScope.
+// GlobalScope can be used indirectly. Here as a default parameter makes sense.
+class ArticlesRepository(
+    private val articlesDataSource: ArticlesDataSource,
+    private val externalScope: CoroutineScope = GlobalScope,
+    private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
+) {
+    // As we want to complete bookmarking the article even if the user moves
+    // away from the screen, the work is done creating a new coroutine
+    // from an external scope
+    suspend fun bookmarkArticle(article: Article) {
+        externalScope.launch(defaultDispatcher) {
+            articlesDataSource.bookmarkArticle(article)
+        }
+            .join() // Wait for the coroutine to complete
+    }
+}
+```
+
+❌ **Bad**: use GlobalScope directly
+
+```kotlin
+
+// ❌ BAD - use GlobalScope directly
+class ArticlesRepository(
+    private val articlesDataSource: ArticlesDataSource,
+) {
+    // As we want to complete bookmarking the article even if the user moves away
+    // from the screen, the work is done creating a new coroutine with GlobalScope
+    suspend fun bookmarkArticle(article: Article) {
+        GlobalScope.launch {
+            articlesDataSource.bookmarkArticle(article)
+        }
+            .join() // Wait for the coroutine to complete
+    }
+}
+```
+
+✅ **Good**: Don’t hardcode Dispatchers when creating new coroutines or calling withContext.
+
+```kotlin
+// ✅ DO inject Dispatchers
+class NewsRepository(
+    private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
+) {
+    suspend fun loadNews() = withContext(defaultDispatcher) { /* ... */ }
+}
+```
+
+❌ **Bad**:
+
+```kotlin
+// ❌ BAD hardcode Dispatchers
+class NewsRepository {
+    // DO NOT use Dispatchers.Default directly, inject it instead
+    suspend fun loadNews() = withContext(Dispatchers.Default) { /* ... */ }
+}
+```
+
+✅ **Good**: When performing background work and updating the UI within your root coroutine, avoid launching it with a non-Main dispatcher.
+
+```kotlin
+// ✅ Good
+val scope = CoroutineScope(Dispatchers.Main)
+
+fun login() = scope.launch {
+    view.showLoading()
+    withContext(Dispatcher.IO) { networkClient.login(...) }
+    view.hideLoading()
+}
+```
+
+❌ **Bad**:
+
+```kotlin
+// ❌ BAD
+val scope = CoroutineScope(Dispatchers.Default)          // (1)
+
+fun login() = scope.launch {
+    withContext(Dispatcher.Main) { view.showLoading() }  // (2)  
+    networkClient.login(...)
+    withContext(Dispatcher.Main) { view.hideLoading() }  // (2)
+}
+```
+
+✅ **Good**: Structured concurrency:
+
+```kotlin
+// ✅ ensures all child tasks are completed before reaching an end, all tasks are part of the parent's scope
+class UserAccount {
+    suspend fun getBalance ():Int {
+        var count = 0
+        var deferred: Deferred<Int>
+        coroutineScope {
+            launch(Dispatchers.IO) {
+                delay(100)
+                count = 2000
+            }
+            deferred = async (Dispatchers.IO){
+                delay(300)
+                return@async 100
+            }
+        }
+        return count + deferred.await()
+    }
+}
+```
+
+❌ **Bad**: Unstructured Concurrency:
+
+```kotlin
+
+// ❌ BAD - output may be either 100$ or $2100, as there is no guarantee that Task 1 will be completed before reaching the method's last statement i.e. return count + deferred.await()
+class UserAccount {
+    suspend fun getBalance():Int {
+        var count = 0
+        // Task 1
+        CoroutineScope(Dispatchers.IO).launch {
+            count = 2000
+        }
+        // Task 2
+        val deferred = CoroutineScope(Dispatchers.IO).async {
+            // mimic api response
+            delay(300)
+            return@async 100
+        }
+        return count + deferred.await()
+    }
+}
+```
+
+### Android-Specific Kotlin Guidelines
+*(Note: While this template targets JVM, these principles from the Android Kotlin guide are highly relevant for generic modern Kotlin)*
+- **Imports**: Group imports properly. Avoid wildcard imports (e.g. `import foo.*`).
+- **Annotations**: Place annotations on separate lines before the declaration. Multiple annotations can be placed on the same line if they don't have parameters.
+- **Modifiers Order**: Always follow the standard Kotlin modifier order (`public` / `protected` / `private` / `internal` -> `expect` / `actual` -> `final` / `open` / `abstract` / `sealed` / `const` -> `external` / `override` / `lateinit` / `tailrec` -> `vararg` / `suspend` / `inner` / `enum` / `annotation` / `fun` -> `companion` / `inline` / `value` / `infix` / `operator` -> `data`).
+- **Conditionals**: Avoid using deeply nested `if`/`else`. For multi-branch conditions, strongly prefer `when`.
+- **Type arguments**: Only omit type arguments if they can be easily inferred by the compiler.
+- **Control Flow as Expressions**: Leverage `if`, `when`, and `try/catch` as expressions assigning their result directly to a variable rather than using them purely as statements.
+- **Use `viewModelScope` / `lifecycleScope` / `coroutineScope` properly**: Don't use `GlobalScope` as it can lead to memory leaks and unmanageable jobs. Tie coroutine lifecycles to their logical owner.
 
 ### ❌ BAD vs ✅ GOOD Approaches
 
@@ -133,6 +300,13 @@ Before submitting changes, ensure:
 | **Looping** | `for (i in 0..list.size - 1)` | `for (item in list)` or `list.forEach { ... }` |
 | **String Concatenation** | `"Hello " + name + "!"` | `"Hello $name!"` |
 | **Function body** | `fun add(a: Int, b: Int): Int { return a + b }` | `fun add(a: Int, b: Int) = a + b` |
+| **State Handling** | `open class State` / `enum class State` (if holding data) | `sealed class` / `sealed interface State` |
+| **Object Config** | `val paint = Paint(); paint.color = RED` | `val paint = Paint().apply { color = RED }` |
+| **Constants** | `val maxCount = 10` (at top level) | `const val MAX_COUNT = 10` |
+| **Filtering** | `list.filter { it != null }.map { it!! }` | `list.filterNotNull()` |
+| **Branching** | `if (a == 1) { x } else if (a == 2) { y } else { z }` | `when (a) { 1 -> x; 2 -> y; else -> z }` |
+| **Coroutine Dispatcher** | `withContext(Dispatchers.IO) { ... }` | `withContext(injectedDispatcher) { ... }` |
+| **Scope Usage** | `GlobalScope.launch { ... }` | `viewModelScope.launch { ... }` |
 
 ### Performance Considerations
 - **Inline Functions**: Use `inline` for functions taking lambda arguments to reduce overhead.
@@ -145,6 +319,8 @@ Before submitting changes, ensure:
 - **Avoid Platform Types**: When interoperating with Java, explicitly specify nullability to avoid runtime crashes.
 - **Don't Overuse `let`**: Use `let` for scoping or null-checks, but don't use it to replace every simple `if`.
 - **Avoid Deep Nesting**: Use early returns or `when` expressions to keep code flat.
+- **Omit Unit return types**: Never declare `: Unit` explicitly on functions.
+- **Avoid Wildcard Imports**: E.g., `import java.util.*`. They pollute the namespace and can cause compilation errors later when new classes are introduced into the wildcard package.
 
 ## Software Development Best Practices (SOLID)
 
@@ -227,4 +403,3 @@ The project uses Gradle. A `Makefile` is also provided for convenience.
 - `./gradlew koverHtmlReport`: Generates a Kover HTML coverage report.
 - `./gradlew dokkaHtml`: Generates HTML documentation.
 - `./gradlew pitest`: Runs mutation tests.
-
