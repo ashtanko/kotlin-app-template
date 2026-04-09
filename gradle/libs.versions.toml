@@ -15,7 +15,7 @@ kover = "0.9.8"                  # https://github.com/Kotlin/kotlinx-kover
 diktat = "2.0.0"                 # https://github.com/saveourtool/diktat
 mockito = "5.23.0"               # https://mvnrepository.com/artifact/org.mockito/mockito-core
 mockito_kotlin = "2.2.0"         # https://mvnrepository.com/artifact/com.nhaarman.mockitokotlin2/mockito-kotlin
-turbine = "1.2.0"
+turbine = "1.2.1"
 
 [libraries]
 junit-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
