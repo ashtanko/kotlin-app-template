@@ -20,8 +20,12 @@ permissions:
 
 jobs:
   build:
-    name: Build
+    name: Build (JDK ${{ matrix.java-version }})
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java-version: ['17', '21']
+      fail-fast: false
 
     steps:
       - name: Checkout code
@@ -29,10 +33,10 @@ jobs:
         with:
           fetch-depth: 0  # Shallow clones should be disabled for better analysis relevancy
 
-      - name: Set up JDK 17
+      - name: Set up JDK ${{ matrix.java-version }}
         uses: actions/setup-java@v5
         with:
-          java-version: '17'
+          java-version: ${{ matrix.java-version }}
           distribution: 'zulu'
           cache: 'gradle'
 
