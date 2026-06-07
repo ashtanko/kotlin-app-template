@@ -80,7 +80,7 @@ jobs:
         run: ./gradlew jacocoTestReport
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v6.0.1
+        uses: codecov/codecov-action@v6.0.2
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           directory: ./build/reports/jacoco/
