@@ -103,7 +103,7 @@ spotless {
             ),
         )
         trimTrailingWhitespace()
-        indentWithSpaces()
+        leadingTabsToSpaces()
         endWithNewline()
         val delimiter = "^(package|object|import|interface|internal|@file|//startfile)"
         val licenseHeaderFile = rootProject.file("spotless/copyright.kt")
