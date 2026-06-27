@@ -17,14 +17,15 @@ keep_main_class=false
 usage() {
     cat <<'USAGE'
 Usage:
+  scripts/rename-project.sh -n <name> -p <package> [options]
   scripts/rename-project.sh --project-name <name> --package <package> [options]
   scripts/rename-project.sh <name> <package> [options]
 
 Renames the Gradle project and Kotlin package throughout the repository.
 
 Required:
-  --project-name <name>       New Gradle/repository project name, for example my-app
-  --package <package>         New Kotlin package, for example com.example.myapp
+  -n, --project-name <name>   New Gradle/repository project name, for example my-app
+  -p, --package <package>     New Kotlin package, for example com.example.myapp
 
 Options:
   --old-project-name <name>   Override the project name detected from settings.gradle.kts
@@ -37,6 +38,7 @@ Options:
 
 Examples:
   scripts/rename-project.sh my-service com.acme.service
+  scripts/rename-project.sh -n my-service -p com.acme.service
   scripts/rename-project.sh --project-name my-service --package com.acme.service --github-owner acme
 USAGE
 }
@@ -52,13 +54,13 @@ log() {
 
 while (($# > 0)); do
     case "$1" in
-        --project-name)
+        -n|--project-name)
             option="$1"
             shift
             (($# > 0)) || die "$option requires a value"
             new_project_name="$1"
             ;;
-        --package|--new-package)
+        -p|--package|--new-package)
             option="$1"
             shift
             (($# > 0)) || die "$option requires a value"
