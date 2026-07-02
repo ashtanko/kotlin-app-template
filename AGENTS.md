@@ -4,7 +4,7 @@ This guide provides comprehensive instructions for AI agents working on the Kotl
 
 ## Project Overview
 
-This project is a comprehensive **Kotlin 2.2 application template** designed for rapid project setup with a strong emphasis on static analysis, testing, and continuous integration. It uses Gradle (Kotlin DSL) and targets JVM 17+.
+This project is a comprehensive **Kotlin 2.4 application template** designed for rapid project setup with a strong emphasis on static analysis, testing, and continuous integration. It uses Gradle (Kotlin DSL) and targets JVM 17+.
 
 ## Architecture Overview
 
@@ -42,7 +42,7 @@ This project is a comprehensive **Kotlin 2.2 application template** designed for
 #### 1. Fixing Static Analysis Issues
 When Detekt or Ktlint flags an issue, fix it directly.
 ```kotlin
-// Before (Complex function flagged by Detekt)
+// Before (block body flagged in favor of an expression body)
 fun calculate(a: Int, b: Int): Int {
     return a + b
 }
@@ -73,7 +73,7 @@ Dependencies are managed centrally.
 ```toml
 # In gradle/libs.versions.toml
 [versions]
-kotlin = "2.2.0"
+kotlin = "2.4.0"
 ```
 
 ### CI Requirements
@@ -115,7 +115,7 @@ Before submitting changes, ensure:
 - **Kotlin-First:** 100% Kotlin codebase.
 - **Coding Style:** Enforced by `ktlint` and `diktat`. Follow standard Kotlin idioms.
 - **License Headers:** All `.kt` files must include the license header defined in `spotless/copyright.kt`. This is enforced/applied by `spotless`.
-- **Git Hooks:** Pre-commit hooks are located in `scripts/git-hooks/`. They are automatically installed to `.git/hooks/` during the Gradle `clean` task or when running `make check`. They run static analysis before every commit.
+- **Git Hooks:** Pre-commit hooks are located in `scripts/git-hooks/`. They are automatically installed to `.git/hooks/` during the Gradle `clean` task (which depends on the `installGitHooks` task, run only on Linux/macOS). They run static analysis before every commit.
 - **Static Analysis Baseline:** A Detekt baseline is maintained at `config/detekt/detekt-baseline.xml` to manage existing issues.
 
 ### Code Style & Best Practices (2025 Standards)
@@ -394,7 +394,7 @@ The project uses Gradle. A `Makefile` is also provided for convenience.
 
 - `./gradlew build`: Compiles the project and runs tests.
 - `./gradlew test`: Executes the test suite.
-- `./gradlew run`: Runs the application (main class: `link.kotlin.scripts.Application`).
+- `./gradlew run`: Runs the application (main class: `dev.shtanko.template.ApplicationKt`).
 - `./gradlew detekt`: Runs static analysis with Detekt.
 - `./gradlew ktlintCheck`: Checks code style with ktlint.
 - `./gradlew diktatCheck`: Checks code style with diktat.
