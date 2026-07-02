@@ -40,6 +40,8 @@ Run a single test class or method (standard Gradle test filtering):
 
 **Git hooks self-install via Gradle.** The `clean` task depends on `installGitHooks`, which copies `scripts/git-hooks/*.sh` into `.git/hooks/` (Linux/macOS only). The pre-commit hook runs `detekt ktlintCheck spotlessCheck spotlessApply` and blocks the commit on failure.
 
+**A Claude Code agent hook lints AI edits.** Separately from the git pre-commit hook above (which fires at commit time), `.claude/settings.json` registers a `Stop` hook — `scripts/claude/lint-hook.sh` — that fires when the agent finishes a turn. If any `.kt` file changed, it runs `spotlessApply` (auto-fix) then `detekt ktlintCheck diktatCheck spotlessCheck`, feeding any remaining violations back so the agent fixes them before finishing. Run the same suite on demand with the `/lint` slash command.
+
 ## CI
 
 `.github/workflows/ci.yml` runs on pushes to `main` and PRs: build + test on JDK 17 and 21, the static-analysis tools, and coverage upload (Codecov/Codacy). Match it locally with `make check && make test` before pushing.
