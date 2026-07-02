@@ -42,7 +42,7 @@ repositories {
 }
 
 application {
-    mainClass.set("link.kotlin.scripts.Application")
+    mainClass.set("dev.shtanko.template.ApplicationKt")
 }
 
 configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
