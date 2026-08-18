@@ -6,7 +6,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a **GitHub template** for bootstrapping Kotlin/JVM projects, not a product. The code under `src/main/kotlin/dev/shtanko/template/` (`Calculator`, `DataProcessor`, `DivideByZeroException`) is placeholder/example code that demonstrates the toolchain — expect it to be replaced. The value of the repo is the preconfigured build, static-analysis, testing, and CI setup. When customizing for a real project, `scripts/rename-project.sh -n <name> -p <package>` rewrites the project name, Kotlin package, and `application.mainClass` throughout the repo (`--dry-run` to preview).
 
-**`AGENTS.md` is the single source of truth for Kotlin coding conventions** (coroutines, scope functions, SOLID, naming, testing style). Consult it rather than re-deriving style rules, and don't duplicate that content here — this file owns *how the repo operates* (build, tooling, CI), `AGENTS.md` owns *how to write the code*.
+**`AGENTS.md` is the canonical entry point for coding conventions** and delegates to
+[`.agents/`](.agents/README.md) — `.agents/reference/coding-conventions.md` and
+`.agents/reference/testing.md` hold the naming/null-safety/SOLID/testing rules, and
+`.agents/skills/` holds deep, portable procedures (coroutine scope ownership, `Flow` primitive
+choice, branching, function ownership, value classes). Consult those rather than re-deriving style
+rules, and don't duplicate that content here — this file owns *how the repo operates* (build,
+tooling, CI), `AGENTS.md`/`.agents/` own *how to write the code*.
 
 ## Common commands
 
