@@ -8,7 +8,13 @@ This is a **GitHub template** for bootstrapping Kotlin/JVM projects, not a produ
 
 **Shared build logic lives in `buildSrc`.** Every module applies the `template.kotlin-library` convention plugin (`buildSrc/src/main/kotlin/template.kotlin-library.gradle.kts`), which bundles the Kotlin/JVM toolchain, detekt/ktlint/diktat/Kover/jacoco, and the JUnit 5 test stack in one place instead of repeating it per module. Module-specific things (dependencies, `application.mainClass`, Pitest config) stay in that module's own `build.gradle.kts`.
 
-**`AGENTS.md` is the single source of truth for Kotlin coding conventions** (coroutines, scope functions, SOLID, naming, testing style). Consult it rather than re-deriving style rules, and don't duplicate that content here — this file owns *how the repo operates* (build, tooling, CI), `AGENTS.md` owns *how to write the code*.
+**`AGENTS.md` is the canonical entry point for coding conventions** and delegates to
+[`.agents/`](.agents/README.md) — `.agents/reference/coding-conventions.md` and
+`.agents/reference/testing.md` hold the naming/null-safety/SOLID/testing rules, and
+`.agents/skills/` holds deep, portable procedures (coroutine scope ownership, `Flow` primitive
+choice, branching, function ownership, value classes). Consult those rather than re-deriving style
+rules, and don't duplicate that content here — this file owns *how the repo operates* (build,
+tooling, CI), `AGENTS.md`/`.agents/` own *how to write the code*.
 
 ## Common commands
 
