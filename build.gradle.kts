@@ -1,94 +1,30 @@
-import io.gitlab.arturbosch.detekt.DetektCreateBaselineTask
-import org.gradle.kotlin.dsl.apply
-import org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_2
-import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
-
-val projectJvmTarget = 17
-val satisfyingNumberOfCores = Runtime.getRuntime().availableProcessors().div(2).takeIf { it > 0 } ?: 1
-val kotlinVersion = KOTLIN_2_2
+// Top-level build file. Owns whole-repo concerns: static-analysis wiring that spans every
+// module, coverage aggregation across `app`/`core`, README generation inputs, and git hooks.
+// Per-module toolchain/lint/test config lives in the `template.kotlin-library` convention
+// plugin (buildSrc/src/main/kotlin/template.kotlin-library.gradle.kts), applied by each module.
+plugins {
+    base
+    idea
+    jacoco
+    id("com.github.nbaztec.coveralls-jacoco") version "1.2.20"
+    // No version: com.diffplug.spotless is already on the classpath via buildSrc's own
+    // dependency on it (needed there to reference SpotlessPlugin below and in the convention
+    // plugin), so an `alias(libs.plugins.spotless)` here would conflict on the unversioned copy.
+    id("com.diffplug.spotless")
+    // Diktat's Gradle plugin registers a root-level `mergeDiktatReports` aggregation task the
+    // moment any subproject applies it, so the root project needs the plugin present too (no
+    // `diktat { }` config here — there's no Kotlin source at the root to lint).
+    id("com.saveourtool.diktat")
+    alias(libs.plugins.dependency.analysis)
+}
 
 fun isLinux(): Boolean {
     val osName = System.getProperty("os.name").lowercase()
     return listOf("linux", "mac os", "macos").contains(osName)
 }
 
-@Suppress("DSL_SCOPE_VIOLATION") // https://youtrack.jetbrains.com/issue/KTIJ-19369
-plugins {
-    base
-    application
-    jacoco
-    id("com.github.nbaztec.coveralls-jacoco") version "1.2.20"
-    idea
-    alias(libs.plugins.kt.jvm)
-    alias(libs.plugins.detekt)
-    alias(libs.plugins.dokka)
-    alias(libs.plugins.spotless)
-    alias(libs.plugins.dependency.analysis)
-    alias(libs.plugins.pitest)
-    alias(libs.plugins.kover)
-    alias(libs.plugins.diktat)
-    alias(libs.plugins.ktlint)
-}
-
 jacoco {
     toolVersion = "0.8.15"
-}
-
-repositories {
-    mavenCentral()
-    maven { url = uri("https://repo.kotlin.link") }
-    gradlePluginPortal()
-    maven("https://plugins.gradle.org/m2/")
-}
-
-application {
-    mainClass.set("dev.shtanko.template.ApplicationKt")
-}
-
-configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
-    debug.set(true)
-    verbose.set(true)
-    android.set(false)
-    outputToConsole.set(true)
-    outputColorName.set("RED")
-    ignoreFailures.set(true)
-    enableExperimentalRules.set(true)
-    reporters {
-        reporter(ReporterType.PLAIN)
-        reporter(ReporterType.CHECKSTYLE)
-        reporter(ReporterType.JSON)
-        reporter(ReporterType.HTML)
-    }
-    kotlinScriptAdditionalPaths {
-        include(fileTree("scripts/"))
-    }
-    filter {
-        exclude("**/generated/**")
-        include("**/kotlin/**")
-    }
-}
-
-diktat {
-    inputs {
-        include("src/main/**/*.kt")
-        exclude("**/generated/**")
-    }
-}
-
-plugins.withId("info.solidsoft.pitest") {
-    configure<info.solidsoft.gradle.pitest.PitestPluginExtension> {
-        jvmArgs.set(listOf("-Xmx2048m"))
-        avoidCallsTo.set(setOf("kotlin.jvm.internal", "kotlin.Result"))
-        targetClasses.set(setOf("dev.shtanko.*"))
-        targetTests.set(setOf("dev.shtanko.*"))
-        pitestVersion.set("1.15.0")
-        verbose.set(true)
-        timestampedReports.set(false)
-        threads.set(System.getenv("PITEST_THREADS")?.toInt() ?: satisfyingNumberOfCores)
-        outputFormats.set(setOf("XML", "HTML"))
-        testPlugin.set("junit5")
-        junit5PluginVersion = "1.2.1"
-    }
 }
 
 spotless {
@@ -115,47 +51,105 @@ subprojects {
     apply<com.diffplug.gradle.spotless.SpotlessPlugin>()
 }
 
-kover {
+// region Coverage aggregation across app + core
+// Kover's built-in cross-project aggregation (`dependencies { kover(project(...)) }` at the
+// root) currently fails to resolve kotlin-stdlib:2.4.10 (published as a Kotlin Multiplatform
+// module) inside its internal `koverExternalArtifacts` configuration — a Kover 0.9.9 limitation,
+// reproducible even outside this refactor, and there's no newer Kover release yet. So Kover is
+// instead applied per module (by the convention plugin, alongside detekt/ktlint/diktat) and each
+// module enforces its own >=80% bound; `./gradlew koverVerify`/`koverXmlReport` from the root
+// still fans out to `:app`/`:core` the same way `./gradlew detekt` does.
+
+// Jacoco has no built-in aggregation either, so the merge is hand-rolled: gather each module's
+// exec data + class/source dirs into one root-level report and verification task. The output
+// path intentionally matches the jacoco plugin's own per-module default
+// (build/reports/jacoco/test/jacocoTestReport.xml) so CI, Codecov and coveralls-jacoco don't
+// need to know this is now an aggregate.
+val coverageModules = listOf(project(":app"), project(":core"))
+
+// (The jacoco plugin only auto-registers jacocoTestReport/jacocoTestCoverageVerification when
+// the `java` plugin is present, which the root project doesn't have — so these are freshly
+// registered rather than configuring existing ones.)
+tasks.register<JacocoReport>("jacocoTestReport") {
+    group = "verification"
+    description = "Generates an aggregated Jacoco coverage report for app + core."
+    dependsOn(coverageModules.map { it.tasks.named("test") })
+
+    val mainClassDirs = coverageModules.map { it.layout.buildDirectory.dir("classes/kotlin/main") }
+    val mainSourceDirs = coverageModules.map { it.layout.projectDirectory.dir("src/main/kotlin") }
+    val execFiles = coverageModules.map { it.layout.buildDirectory.file("jacoco/test.exec") }
+
+    classDirectories.setFrom(mainClassDirs)
+    sourceDirectories.setFrom(mainSourceDirs)
+    additionalSourceDirs.setFrom(mainSourceDirs)
+    executionData.setFrom(execFiles.filter { it.get().asFile.exists() })
+
     reports {
-        verify {
-            rule {
-                minBound(80)
+        html.required.set(true)
+        html.outputLocation.set(layout.buildDirectory.dir("reports/jacoco/test/html"))
+        xml.required.set(true)
+        xml.outputLocation.set(layout.buildDirectory.file("reports/jacoco/test/jacocoTestReport.xml"))
+        csv.required.set(true)
+        csv.outputLocation.set(layout.buildDirectory.file("reports/jacoco/test/jacocoTestReport.csv"))
+    }
+}
+
+tasks.register<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
+    group = "verification"
+    description = "Enforces the aggregated Jacoco coverage floor across app + core."
+    dependsOn("jacocoTestReport")
+
+    val mainClassDirs = coverageModules.map { it.layout.buildDirectory.dir("classes/kotlin/main") }
+    val mainSourceDirs = coverageModules.map { it.layout.projectDirectory.dir("src/main/kotlin") }
+    val execFiles = coverageModules.map { it.layout.buildDirectory.file("jacoco/test.exec") }
+
+    classDirectories.setFrom(mainClassDirs)
+    sourceDirectories.setFrom(mainSourceDirs)
+    additionalSourceDirs.setFrom(mainSourceDirs)
+    executionData.setFrom(execFiles.filter { it.get().asFile.exists() })
+
+    violationRules {
+        rule {
+            limit {
+                minimum = "0.5".toBigDecimal()
             }
         }
     }
 }
 
-tasks {
-    withType<Test> {
-        maxParallelForks = 1
-        jvmArgs(
-            "--add-opens",
-            "java.base/jdk.internal.misc=ALL-UNNAMED",
-            "--add-exports",
-            "java.base/jdk.internal.util=ALL-UNNAMED",
-            "--add-exports",
-            "java.base/sun.security.action=ALL-UNNAMED",
-        )
-    }
-    compileKotlin {
-        compilerOptions {
-            apiVersion.set(kotlinVersion)
-            languageVersion.set(kotlinVersion)
-        }
-    }
-    kotlin {
-        jvmToolchain(projectJvmTarget)
-    }
-    jacocoTestCoverageVerification {
-        violationRules {
-            rule {
-                limit {
-                    minimum = "0.5".toBigDecimal()
-                }
-            }
-        }
-    }
+tasks.named("check") {
+    dependsOn("jacocoTestCoverageVerification")
+}
+// endregion
 
+// region Detekt markdown merge (feeds `make md` / config/main.md README generation)
+// Detekt itself is applied per module by the convention plugin; running `./gradlew detekt` from
+// the root fans out to `:app:detekt` and `:core:detekt` automatically. This task stitches their
+// markdown reports together at the path `make md` expects (build/reports/detekt/detekt.md).
+tasks.register("detektMergeMd") {
+    group = "reporting"
+    description = "Merges per-module Detekt markdown reports for README generation."
+    dependsOn(":app:detekt", ":core:detekt")
+    val moduleReports = listOf(project(":app"), project(":core")).map {
+        it.name to it.layout.buildDirectory.file("reports/detekt/detekt.md")
+    }
+    val target = layout.buildDirectory.file("reports/detekt/detekt.md")
+    doLast {
+        target.get().asFile.apply {
+            parentFile.mkdirs()
+            writeText(
+                moduleReports.joinToString("\n\n") { (name, report) ->
+                    val file = report.get().asFile
+                    "## Module: $name\n\n" + if (file.exists()) file.readText() else "_no report generated_"
+                },
+            )
+        }
+    }
+}
+// endregion
+
+// region Git hooks
+tasks {
     register<Copy>("copyGitHooks") {
         description = "Copies the git hooks from scripts/git-hooks to the .git folder."
         group = "git hooks"
@@ -190,87 +184,5 @@ tasks {
     afterEvaluate {
         tasks["clean"].dependsOn(tasks.named("installGitHooks"))
     }
-
-    jacocoTestReport {
-        dependsOn(test)
-        reports {
-            listOf(
-                html,
-                xml,
-                csv,
-            ).forEach { it.required.set(true) }
-        }
-    }
-
-    withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-        compilerOptions {
-            apiVersion.set(kotlinVersion)
-        }
-    }
-
-    withType<io.gitlab.arturbosch.detekt.Detekt> {
-        description = "Runs over whole code base without the starting overhead for each module."
-        parallel = true
-        baseline.set(file("$rootDir/config/detekt/detekt-baseline.xml"))
-        config.from(file("config/detekt/detekt.yml"))
-        jvmTarget = "$projectJvmTarget"
-
-        setSource(files("src/main/kotlin", "src/test/kotlin"))
-        setOf(
-            "**/*.kt",
-            "**/*.kts",
-            ".*/resources/.*",
-            ".*/build/.*",
-            "/versions.gradle.kts",
-        ).forEach {
-            include(it)
-        }
-
-        reports {
-            reports.apply {
-                listOf(xml, html, txt, md).forEach { it.required.set(true) }
-            }
-        }
-    }
-
-    withType<DetektCreateBaselineTask> {
-        jvmTarget = "$projectJvmTarget"
-    }
-
-    withType<Test>().configureEach {
-        jvmArgs =
-            listOf(
-                "-Dkotlintest.tags.exclude=Integration,EndToEnd,Performance",
-            )
-        testLogging {
-            events("passed", "skipped", "failed")
-        }
-        testLogging.showStandardStreams = true
-        useJUnitPlatform()
-        finalizedBy(withType(JacocoReport::class.java))
-    }
 }
-
-dependencies {
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    libs.apply {
-        kotlin.apply {
-            implementation(stdlib)
-            implementation(reflect)
-            implementation(coroutines)
-        }
-
-        testImplementation(mockk)
-        testImplementation(mockk.bdd)
-        junit.apply {
-            testImplementation(api)
-            testImplementation(params)
-            testRuntimeOnly(engine)
-        }
-        testImplementation(assertj)
-        testImplementation(mockito)
-        testImplementation(mockito.kotlin)
-        testImplementation(kotlin.coroutines.test)
-    }
-    testImplementation(libs.turbine)
-}
+// endregion

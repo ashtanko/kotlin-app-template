@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package dev.shtanko.template
+package dev.shtanko.template.core
 
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -37,9 +38,10 @@ import kotlinx.coroutines.withContext
  * @param ioDispatcher The CoroutineDispatcher used to offload logic.
  */
 class DataProcessor(
-    private val ioDispatcher: CoroutineDispatcher,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
     /**
+
      * Fetches a list of IDs.
      *
      * @return List of IDs.

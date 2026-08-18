@@ -1,23 +1,27 @@
 #!/bin/sh
+set -e
+
 echo "Running static analysis..."
 
-JAVA_HOME=$(/usr/libexec/java_home -v 1.8)
-export JAVA_HOME
+# 1) Auto-fix formatting, trailing whitespace and license headers
+./gradlew spotlessApply --profile --daemon
 
-OUTPUT="/tmp/analysis-result"
-./gradlew detekt ktlintCheck spotlessCheck spotlessApply --profile --daemon > ${OUTPUT}
-EXIT_CODE=$?
-if [ ${EXIT_CODE} -ne 0 ]; then
-    cat ${OUTPUT}
-    rm ${OUTPUT}
+# 2) Stage any files modified by spotlessApply
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    git add -u
+fi
+
+# 3) Run full verification suite
+if ./gradlew detekt ktlintCheck diktatCheck spotlessCheck --profile --daemon; then
+    echo "*********************************************"
+    echo "      Static analysis no problems found      "
+    echo "*********************************************"
+    exit 0
+else
     echo "*********************************************"
     echo "            Static Analysis Failed           "
     echo "Please fix the above issues before committing"
     echo "*********************************************"
-    exit ${EXIT_CODE}
-else
-    rm ${OUTPUT}
-    echo "*********************************************"
-    echo "      Static analysis no problems found      "
-    echo "*********************************************"
+    exit 1
 fi
+

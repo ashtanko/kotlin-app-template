@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package dev.shtanko.template
+package dev.shtanko.template.core
 
 import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.Assertions.assertEquals

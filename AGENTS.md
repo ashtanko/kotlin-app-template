@@ -15,10 +15,10 @@ don't duplicate each other.
    the linters *can't* make for you.
 2. **When unsure, mirror the canonical example files.** The most reliable pattern in
    this repo is to write code like the existing examples:
-   - `src/main/kotlin/dev/shtanko/template/DataProcessor.kt` — coroutines, dispatcher
-     injection, `Flow`, error handling.
-   - `src/main/kotlin/dev/shtanko/template/Calculator.kt` — expression bodies, KDoc.
-   - `src/test/kotlin/dev/shtanko/template/DataProcessorTest.kt` &
+   - `core/src/main/kotlin/dev/shtanko/template/core/DataProcessor.kt` — coroutines,
+     dispatcher injection, `Flow`, error handling.
+   - `core/src/main/kotlin/dev/shtanko/template/core/Calculator.kt` — expression bodies, KDoc.
+   - `core/src/test/kotlin/dev/shtanko/template/core/DataProcessorTest.kt` &
      `ExampleTest.kt` — the testing style (JUnit 5, coroutine tests, Turbine).
 
 ## Project context that affects code
@@ -26,9 +26,10 @@ don't duplicate each other.
 - **JVM-only Kotlin template**, Gradle (Kotlin DSL), targeting JVM 17+ (CI builds on
   17 and 21). There is **no Android** here — ignore Android-only APIs
   (`viewModelScope`, `lifecycleScope`, `Context`, `View`, etc.).
-- **Compiler is Kotlin 2.4.0, but the language level is pinned to 2.2.**
-  `build.gradle.kts` sets `apiVersion`/`languageVersion` to `KOTLIN_2_2`. Do **not**
-  use language features newer than 2.2 even though a 2.4 compiler is running.
+- **Compiler is Kotlin 2.4.0, but the language level is pinned to 2.2.** The
+  `template.kotlin-library` convention plugin (buildSrc) sets `apiVersion`/`languageVersion`
+  to `KOTLIN_2_2` for every module. Do **not** use language features newer than 2.2 even
+  though a 2.4 compiler is running.
 - **Coroutines are first-class.** The `kotlinx-coroutines-jdk8` and (in tests)
   `kotlinx-coroutines-test` + Turbine dependencies are wired in — see
   `DataProcessor.kt` for the intended style.
@@ -237,10 +238,11 @@ Keep descriptions concise, explain *why* when it isn't obvious, and link issues
 
 - `AGENTS.md` (this file) — Kotlin coding conventions.
 - `CLAUDE.md` — build, commands, tooling, CI, versions, generated README.
-- `build.gradle.kts` / `gradle/libs.versions.toml` — build config & centralized
-  versions.
+- `build.gradle.kts` / `gradle/libs.versions.toml` — root build config & centralized
+  versions; `buildSrc/src/main/kotlin/template.kotlin-library.gradle.kts` — the
+  convention plugin shared by every module (`app`, `core`).
 - `config/detekt/detekt.yml` — detekt rules (incl. the 120 line limit).
 - `.editorconfig` — ktlint/formatter settings.
 - `spotless/copyright.kt` — license header template.
-- `src/main/kotlin/dev/shtanko/template/` &
-  `src/test/kotlin/dev/shtanko/template/` — source and tests (the canonical examples).
+- `core/src/main/kotlin/dev/shtanko/template/core/` &
+  `core/src/test/kotlin/dev/shtanko/template/core/` — source and tests (the canonical examples).

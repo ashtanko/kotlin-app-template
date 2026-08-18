@@ -19,6 +19,7 @@ A GitHub template for bootstrapping **Kotlin** projects with **static analysis**
 ## Features 🦄
 
 - **100% Kotlin-only template**.
+- Multi-module layout (`app` + `core`) with shared build logic in a `buildSrc` convention plugin.
 - Kotlin 2.4 with K2 Compiler.
 - JVM 17+ target.
 - 100% Gradle Kotlin DSL setup (Gradle 9.5).
@@ -74,7 +75,7 @@ Run with `--help` for all available options, or `--dry-run` to preview changes.
 ./gradlew run
 ```
 
-> **Note:** The default main class is `link.kotlin.scripts.Application` (configured in `build.gradle.kts`). Update this to your own entry point after scaffolding.
+> **Note:** The default main class is `dev.shtanko.template.ApplicationKt` (configured in `app/build.gradle.kts`). Update this to your own entry point after scaffolding.
 
 ## Scripts & Commands
 
@@ -107,7 +108,7 @@ Run with `--help` for all available options, or `--dry-run` to preview changes.
 | `./gradlew jacocoTestReport`   | Generate Jacoco coverage report                |
 | `./gradlew koverHtmlReport`    | Generate Kover HTML coverage report            |
 | `./gradlew koverXmlReport`     | Generate Kover XML coverage report             |
-| `./gradlew dokkaHtml`          | Generate HTML API documentation                |
+| `./gradlew dokkaGenerateHtml`  | Generate HTML API documentation (per module)   |
 | `./gradlew pitest`             | Run mutation tests                             |
 
 ## Environment Variables
@@ -120,7 +121,7 @@ Run with `--help` for all available options, or `--dry-run` to preview changes.
 
 ## Testing
 
-Tests are located in `src/test/kotlin/` and use:
+Tests are located in each module's `src/test/kotlin/` (e.g. `core/src/test/kotlin/`) and use:
 
 - **JUnit 5** — test runner and parameterized tests
 - **AssertJ** — fluent assertions
@@ -149,38 +150,48 @@ Run mutation testing:
 ./gradlew pitest
 ```
 
-Coverage is enforced at ≥ 80% via Kover and ≥ 50% via Jacoco verification.
+Coverage is enforced at ≥ 50% via Jacoco, aggregated across `app` + `core` at the root. Kover enforces ≥ 80% per module with meaningful logic (`core`); `app` is bootstrap/wiring code and isn't gated.
 
 ## Project Structure
 
 ```
 kotlin-app-template/
-├── build.gradle.kts                # Main Gradle build configuration
-├── settings.gradle.kts             # Gradle settings (project name, toolchain resolver)
+├── build.gradle.kts                # Root: whole-repo concerns (coverage aggregation, spotless, git hooks)
+├── settings.gradle.kts             # Gradle settings (project name, module includes, repositories)
 ├── gradle.properties               # Gradle and Kotlin build properties
 ├── gradle/
-│   └── libs.versions.toml          # Centralized dependency and version catalog
+│   └── libs.versions.toml          # Centralized dependency, plugin, and version catalog
+├── buildSrc/
+│   ├── build.gradle.kts            # buildSrc classpath (convention plugin's own dependencies)
+│   ├── settings.gradle.kts         # Shares the root's version catalog with buildSrc
+│   └── src/main/kotlin/
+│       └── template.kotlin-library.gradle.kts  # Shared per-module convention plugin
+├── app/                             # Application module (entry point)
+│   ├── build.gradle.kts
+│   └── src/main/kotlin/dev/shtanko/template/
+│       └── Application.kt
+├── core/                            # Library module (example business logic)
+│   ├── build.gradle.kts
+│   ├── src/main/kotlin/dev/shtanko/template/core/
+│   │   ├── Calculator.kt           # Example calculator class
+│   │   ├── DataProcessor.kt        # Example data processor with coroutines/Flow
+│   │   └── DivideByZeroException.kt
+│   └── src/test/kotlin/dev/shtanko/template/core/
+│       ├── ExampleTest.kt          # Example calculator tests
+│       └── DataProcessorTest.kt    # Data processor tests
 ├── Makefile                        # Task automation shortcuts
 ├── config/
 │   ├── main.md                     # Source for the main README section
 │   ├── license.md                  # License section appended to README
 │   └── detekt/
-│       ├── detekt.yml              # Detekt rule configuration
-│       └── detekt-baseline.xml     # Detekt baseline for existing issues
+│       ├── detekt.yml              # Detekt rule configuration (shared by every module)
+│       └── detekt-baseline.xml     # Detekt baseline for existing issues (shared)
 ├── spotless/
 │   └── copyright.kt               # License header template for Spotless
 ├── scripts/
 │   ├── git-hooks/
 │   │   └── pre-commit.sh           # Pre-commit hook (static analysis)
 │   └── rename-project.sh           # Project rename utility
-├── src/
-│   ├── main/kotlin/dev/shtanko/template/
-│   │   ├── Calculator.kt           # Example calculator class
-│   │   ├── DataProcessor.kt        # Example data processor with coroutines/Flow
-│   │   └── DivideByZeroException.kt
-│   └── test/kotlin/dev/shtanko/template/
-│       ├── ExampleTest.kt           # Example calculator tests
-│       └── DataProcessorTest.kt     # Data processor tests
 ├── .github/
 │   └── workflows/
 │       └── ci.yml                   # GitHub Actions CI pipeline

@@ -1,16 +1,16 @@
-.PHONY: default check test report treport lines md all kover diktat
+.PHONY: default check test report treport lines md all kover diktat bump-gradle
 
 check:
-	./gradlew spotlessApply spotlessCheck spotlessKotlin detekt ktlintCheck diktatCheck --profile --daemon
+	./gradlew spotlessApply spotlessCheck detekt ktlintCheck diktatCheck --profile --daemon
 
 default:
-	 make check && make md
+	make check && make md
 
 md:
-	truncate -s0 README.md && cat config/main.md >> README.md && cat build/reports/detekt/detekt.md >> README.md && cat config/license.md >> README.md
+	./gradlew detektMergeMd && truncate -s0 README.md && cat config/main.md >> README.md && cat build/reports/detekt/detekt.md >> README.md && cat config/license.md >> README.md
 
 all:
-	make check && ./gradlew build && md
+	make check && ./gradlew build && make md
 
 test:
 	./gradlew test
@@ -19,7 +19,7 @@ report:
 	./gradlew jacocoTestReport
 
 treport:
-	make test & make report
+	make test && make report
 
 lines:
 	find . -name '*.kt' | xargs wc -l
@@ -34,6 +34,7 @@ detekt:
 	./gradlew detekt
 
 bump-gradle:
-	chmod +x gradlew && ./gradlew wrapper --gradle-version 9.0
+	chmod +x gradlew && ./gradlew wrapper --gradle-version 9.5
 
 .DEFAULT_GOAL := default
+

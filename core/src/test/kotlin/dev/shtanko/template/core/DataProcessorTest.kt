@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package dev.shtanko.template
+package dev.shtanko.template.core
 
 import app.cash.turbine.test
 import kotlinx.coroutines.test.StandardTestDispatcher

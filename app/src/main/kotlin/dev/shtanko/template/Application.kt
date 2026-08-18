@@ -16,6 +16,8 @@
 
 package dev.shtanko.template
 
+import dev.shtanko.template.core.Calculator
+
 /**
  * Application entry point.
  *

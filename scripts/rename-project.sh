@@ -148,13 +148,27 @@ common_package_prefix() {
     printf '%s\n' "$prefix"
 }
 
+# Kotlin source can live directly under $PROJECT_ROOT/src (single-module layout) or under any
+# module's own src/ (e.g. app/src, core/src in a multi-module layout) — never under build output,
+# VCS, or Gradle/IDE metadata directories.
+find_project_kotlin_files() {
+    find "$PROJECT_ROOT" \
+        \( -path '*/build/*' -o -path '*/.git/*' -o -path '*/.gradle/*' -o -path '*/.idea/*' -o -path '*/.kotlin/*' \) -prune \
+        -o -type f -name '*.kt' -print0
+}
+
+find_project_kotlin_source_roots() {
+    find "$PROJECT_ROOT" \
+        \( -path '*/build/*' -o -path '*/.git/*' -o -path '*/.gradle/*' -o -path '*/.idea/*' -o -path '*/.kotlin/*' \) -prune \
+        -o -type d -name kotlin -print0
+}
+
 detect_package_name() {
     local package_names=()
     local source_file
     local package_name
     local unique_packages=()
 
-    [[ -d "$PROJECT_ROOT/src" ]] || return 0
     while IFS= read -r -d '' source_file; do
         package_name="$(
             perl -ne \
@@ -162,7 +176,7 @@ detect_package_name() {
                 "$source_file"
         )"
         [[ -n "$package_name" ]] && package_names+=("$package_name")
-    done < <(find "$PROJECT_ROOT/src" -type f -name '*.kt' -print0)
+    done < <(find_project_kotlin_files)
 
     ((${#package_names[@]} > 0)) || return 0
     while IFS= read -r package_name; do
@@ -319,11 +333,27 @@ replace_literal_in_candidate_files() {
     done < <(list_repo_files)
 }
 
-configured_main_class() {
-    local build_file="$PROJECT_ROOT/build.gradle.kts"
+# build.gradle.kts files can live at the root or in any module (app/build.gradle.kts,
+# core/build.gradle.kts, ...) — mainClass and Pitest's targetClasses/targetTests may be
+# configured in whichever module owns them, so tooling below scans all of them.
+find_project_gradle_build_files() {
+    find "$PROJECT_ROOT" \
+        \( -path '*/build/*' -o -path '*/.git/*' -o -path '*/.gradle/*' -o -path '*/.idea/*' -o -path '*/.kotlin/*' \) -prune \
+        -o -type f -name 'build.gradle.kts' -print0
+}
 
-    [[ -f "$build_file" ]] || return 0
-    perl -ne "if (/mainClass\\.set\\(\\s*['\\\"]([^'\\\"]+)['\\\"]\\s*\\)/) { print \$1; exit }" "$build_file"
+
+configured_main_class() {
+    local build_file
+    local main_class_value
+
+    while IFS= read -r -d '' build_file; do
+        main_class_value="$(perl -ne "if (/mainClass\\.set\\(\\s*['\\\"]([^'\\\"]+)['\\\"]\\s*\\)/) { print \$1; exit }" "$build_file")"
+        if [[ -n "$main_class_value" ]]; then
+            printf '%s\n' "$main_class_value"
+            return 0
+        fi
+    done < <(find_project_gradle_build_files)
 }
 
 normalize_main_class() {
@@ -337,7 +367,6 @@ normalize_main_class() {
 }
 
 apply_gradle_and_tool_config() {
-    local build_file="$PROJECT_ROOT/build.gradle.kts"
     local settings_file="$PROJECT_ROOT/settings.gradle.kts"
     local diktat_file="$PROJECT_ROOT/diktat-analysis.yml"
     local resolved_main_class="$main_class"
@@ -386,7 +415,8 @@ apply_gradle_and_tool_config() {
             perl -0pi -e 's/(domainName:\s*)\S+/$1$ENV{DOMAIN_NAME}/g' "$diktat_file"
     fi
 
-    if [[ -f "$build_file" ]]; then
+    local build_file
+    while IFS= read -r -d '' build_file; do
         PITEST_TARGET="$new_package.*" \
             perl -0pi -e 's/(targetClasses\.set\(setOf\(["\x27])[^"\x27]+(["\x27]\)\))/$1$ENV{PITEST_TARGET}$2/g; s/(targetTests\.set\(setOf\(["\x27])[^"\x27]+(["\x27]\)\))/$1$ENV{PITEST_TARGET}$2/g' \
             "$build_file"
@@ -396,7 +426,7 @@ apply_gradle_and_tool_config() {
                 perl -0pi -e 's/(mainClass\.set\(\s*["\x27])[^"\x27]+(["\x27]\s*\))/$1$ENV{MAIN_CLASS}$2/g' \
                 "$build_file"
         fi
-    fi
+    done < <(find_project_gradle_build_files)
 }
 
 prune_empty_dirs() {
@@ -416,7 +446,6 @@ move_package_directories() {
     local temp_dir
     local moved_count=0
 
-    [[ -d "$PROJECT_ROOT/src" ]] || return 0
     while IFS= read -r -d '' source_root; do
         old_dir="$source_root/$old_package_path"
         new_dir="$source_root/$new_package_path"
@@ -438,7 +467,7 @@ move_package_directories() {
         mv "$temp_dir/package" "$new_dir"
         rmdir "$temp_dir"
         prune_empty_dirs "$(dirname "$old_dir")" "$source_root"
-    done < <(find "$PROJECT_ROOT/src" -type d -name kotlin -print0)
+    done < <(find_project_kotlin_source_roots)
 
     if ((moved_count == 0)); then
         log "Package directories: no matching directories"

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package dev.shtanko.template
+package dev.shtanko.template.core
 
 import kotlin.math.ln
 import kotlin.math.sqrt

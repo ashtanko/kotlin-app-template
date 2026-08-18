@@ -46,25 +46,12 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Cache Gradle dependencies
-        uses: actions/cache@v6.1.0
-        with:
-          path: ${{ env.GRADLE_HOME }}/caches
-          key: |
-            gradle-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties') }}
-            -${{ hashFiles('**/*.gradle*') }}
-            -${{ hashFiles('**/buildSrc/**') }}
-            -${{ github.sha }}
-          restore-keys: |
-            gradle-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties') }}
-            -${{ hashFiles('**/*.gradle*') }}
-            -${{ hashFiles('**/buildSrc/**') }}
-
-      - name: Run checks and test
-        run: ./gradlew detekt ktlintCheck diktatCheck --build-cache --no-daemon --stacktrace --gradle-user-home "$GRADLE_HOME"
+      - name: Run static analysis checks
+        run: ./gradlew detekt ktlintCheck diktatCheck spotlessCheck --build-cache --no-daemon --stacktrace
 
       - name: Build with Gradle and test
-        run: ./gradlew build -x koverVerify  # Skipping koverVerify to avoid failure if coverage has lowered
+        run: ./gradlew build --build-cache --no-daemon --stacktrace
+
 
       - name: Run Codacy Analysis CLI
         uses: codacy/codacy-analysis-cli-action@master

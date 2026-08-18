@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package dev.shtanko.template
+package dev.shtanko.template.core
 
 /**
  * Exception thrown when an attempt to divide by zero occurs.
