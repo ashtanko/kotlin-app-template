@@ -1,0 +1,203 @@
+# Kotlin coding conventions
+
+This is the detailed reference for **how to write Kotlin** in this repository. For **how the repo
+operates** (build, commands, tooling pipeline, generated README, versions, CI, git hooks, PR
+mechanics), see [`CLAUDE.md`](../../CLAUDE.md). The two don't duplicate each other.
+
+## How to use this reference
+
+1. **Tooling enforces the mechanics; this file covers the judgment.** Formatting, indentation,
+   import ordering, expression bodies, naming, modifier order, and trailing commas are checked
+   automatically by `ktlint`, `detekt`, `diktat`, and `spotless`. Don't hand-optimize them from
+   memory — run `./gradlew spotlessApply` and `make check` and let the tools decide (see
+   [`commands.md`](commands.md)). What follows focuses on the decisions the linters *can't* make
+   for you.
+2. **When unsure, mirror the canonical example files.** The most reliable pattern in this repo is
+   to write code like the existing examples:
+   - [`DataProcessor.kt`](../../src/main/kotlin/dev/shtanko/template/DataProcessor.kt) — coroutines,
+     dispatcher injection, `Flow`, error handling.
+   - [`Calculator.kt`](../../src/main/kotlin/dev/shtanko/template/Calculator.kt) — expression
+     bodies, KDoc.
+   - [`DataProcessorTest.kt`](../../src/test/kotlin/dev/shtanko/template/DataProcessorTest.kt) &
+     [`ExampleTest.kt`](../../src/test/kotlin/dev/shtanko/template/ExampleTest.kt) — the testing
+     style (JUnit 5, coroutine tests, Turbine); see [`testing.md`](testing.md).
+3. **For a deep procedure, load the matching skill instead of re-deriving it.** Branching,
+   coroutine scope ownership, `Flow` primitive choice, function ownership, and value-class-vs-data-
+   class decisions each have a dedicated, step-by-step skill under
+   [`../skills/`](../skills/) — see the map in [`../README.md`](../README.md).
+
+## Project context that affects code
+
+- **JVM-only Kotlin template**, Gradle (Kotlin DSL), targeting JVM 17+ (CI builds on 17 and 21).
+  There is **no Android** here — ignore Android-only APIs (`viewModelScope`, `lifecycleScope`,
+  `Context`, `View`, etc.) and Compose-only APIs.
+- **Compiler is Kotlin 2.4.0, but the language level is pinned to 2.2.**
+  `build.gradle.kts` sets `apiVersion`/`languageVersion` to `KOTLIN_2_2`. Do **not** use language
+  features newer than 2.2 even though a 2.4 compiler is running.
+- **Coroutines are first-class.** The `kotlinx-coroutines-jdk8` and (in tests)
+  `kotlinx-coroutines-test` + Turbine dependencies are wired in — see `DataProcessor.kt` for the
+  intended style, and load
+  [`kotlin-coroutines-structured-concurrency`](../skills/kotlin-coroutines-structured-concurrency/SKILL.md)
+  before reviewing or writing non-trivial coroutine code.
+
+## Enforced by tooling (don't sweat these by hand)
+
+Running `make check` / `./gradlew spotlessApply` covers all of the following; they're listed here
+only so you recognize them, not so you memorize them:
+
+- **Formatting & indentation**: 4-space indent, LF line endings, final newline, no trailing
+  whitespace (`.editorconfig`, ktlint, spotless).
+- **Line length**: keep lines **≤ 120 chars** — detekt's `MaxLineLength`
+  (`config/detekt/detekt.yml`) fails the build past 120. (Note: `.editorconfig`'s ktlint
+  `max_line_length` is 180, so detekt is the binding constraint; the IDE shows visual guides at
+  80/120/180.)
+- **No wildcard imports** (e.g. `import java.util.*`) — they pollute the namespace and break when
+  the wildcard package gains a colliding class.
+- **Expression bodies** for single-expression functions (`fun add(a: Int, b: Int) = a + b`).
+- **Trailing commas** in multi-line parameter/argument lists (cleaner diffs).
+- **License header**: every `.kt` file must start with the Apache header from
+  `spotless/copyright.kt` (`spotlessApply` adds it).
+- **Detekt baseline**: pre-existing issues are parked in `config/detekt/detekt-baseline.xml`; don't
+  add to it for new code.
+
+## Naming
+
+- Packages: lowercase, no underscores (`dev.shtanko.template`).
+- Classes / objects: `PascalCase` (`DataProcessor`).
+- Functions / properties: `camelCase` (`processDataStream`, `ioDispatcher`).
+- Constants (`const val`, or deeply-immutable `val` with no custom getter): `UPPER_SNAKE_CASE`
+  (`MAX_COUNT`).
+- Backing properties: leading underscore (`private val _items`).
+- Test functions: backticked, descriptive sentences are encouraged here
+  (`` fun `divide by zero throws`() ``). This is a JVM backend, so the Android restriction on
+  spaces-in-backticks does not apply.
+
+## Conventions that need judgment
+
+### Immutability & null-safety
+- **Prefer `val` over `var`.** Only reach for `var` when reassignment is genuinely required.
+- **Never use `!!`.** Use safe calls `?.`, the Elvis operator `?:`, or restructure so nullability
+  is handled explicitly. `!!` is the most common source of avoidable `NullPointerException`.
+- **Specify nullability at Java boundaries.** Don't let platform types (`String!`) leak untyped
+  into Kotlin code.
+
+### Control flow as expressions
+- Use `if`, `when`, and `try`/`catch` as **expressions** that produce a value, rather than
+  statements that mutate a `var` (see `Calculator.divide`).
+- Prefer `when` over deeply nested `if`/`else` chains. Keep code flat with early returns.
+- For the full branching procedure — subject selection, guard conditions, exhaustiveness, smart
+  casts — load [`kotlin-control-flow`](../skills/kotlin-control-flow/SKILL.md).
+
+### Scope functions
+- `let` — null checks / operating on a non-null value: `user?.let { render(it) }`.
+- `apply` — configure an object and return it.
+- `also` — side effects (logging) that return the receiver.
+- `run` / `with` — grouping calls on a receiver and returning a result.
+- Don't nest scope functions deeply, and don't use `let` to replace a plain `if`.
+
+### Modeling data & state
+- **`data class` for models** — free `equals`/`hashCode`/`toString`/`copy`.
+- **`sealed class` / `sealed interface` for closed hierarchies** (e.g. a `Result`/`State` with
+  `Loading`/`Success`/`Error`) so `when` can be exhaustive without an `else`.
+- `enum class` only when the variants carry no distinct data.
+- For choosing `@JvmInline value class` vs `data class`, load
+  [`kotlin-types-value-class`](../skills/kotlin-types-value-class/SKILL.md).
+
+### Collections & performance
+- Use idiomatic operators (`filterNotNull()`, `map`, `forEach`) over manual index loops.
+- Prefer `asSequence()` for large collections with several chained transformations to avoid
+  intermediate allocations.
+- `inline` higher-order functions to avoid lambda allocation overhead; use `reified` when you need
+  the type at runtime.
+- `by lazy { … }` for expensive objects that may not be needed.
+- Avoid allocating in tight loops.
+
+### Function ownership
+- Put a function on its smallest accurate semantic owner: a project type's member, a stateless
+  top-level function, a named factory, or an injected collaborator when it retains policy, state,
+  I/O, or dependencies.
+- Be skeptical of extensions on `String`, primitives, collections, `Flow`, or third-party types —
+  they usually create false ownership. Load
+  [`kotlin-functions`](../skills/kotlin-functions/SKILL.md) for the full decision procedure.
+
+### Modifiers & annotations
+- Follow the standard Kotlin modifier order: `public`/`protected`/`private`/`internal` →
+  `expect`/`actual` → `final`/`open`/`abstract`/`sealed`/`const` →
+  `external`/`override`/`lateinit`/`tailrec` → `vararg`/`suspend`/`inner` →
+  `enum`/`annotation`/`fun` → `companion` → `inline`/`value`/`infix`/`operator` → `data`.
+- Put annotations on their own line before the declaration (multiple parameterless annotations may
+  share a line).
+- Never write `: Unit` explicitly; omit the return type for `Unit` functions.
+
+## Coroutines
+
+The canonical example is **`DataProcessor.kt`** — read it first. Key rules:
+
+- **Inject dispatchers; never hardcode them.** Pass a `CoroutineDispatcher` via the constructor so
+  tests can substitute a test dispatcher.
+
+  ```kotlin
+  // ✅ inject the dispatcher
+  class NewsRepository(
+      private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+  ) {
+      suspend fun loadNews() = withContext(ioDispatcher) { /* ... */ }
+  }
+
+  // ❌ hardcoded — untestable
+  class NewsRepository {
+      suspend fun loadNews() = withContext(Dispatchers.IO) { /* ... */ }
+  }
+  ```
+
+- **Keep `suspend` functions main-safe.** A `suspend` function should be safe to call from any
+  thread; if it does heavy work or I/O, shift context internally with `withContext(ioDispatcher)`
+  (as `DataProcessor.fetchIds` does).
+- **Use structured concurrency.** Launch child coroutines inside `coroutineScope`/
+  `supervisorScope` so they all complete before the parent returns. Return values via
+  `async`/`await` instead of mutating shared `var`s.
+- **Avoid `GlobalScope`** and never store an unowned `CoroutineScope` on a class. **Cancel scopes,
+  not `Job`s.**
+- **Check for cancellation** in long CPU-bound loops with `ensureActive()` or `yield()`.
+- **Exception handling**: prefer `try`/`catch` around the specific suspend calls you can recover
+  from; never swallow `CancellationException` without rethrowing. For `Flow`, handle errors with
+  the `catch` operator (see `DataProcessor.processDataStream`).
+
+For the full anti-pattern review procedure — stored scopes, `init`-block launches,
+`runBlocking`, cancellation swallowing — load
+[`kotlin-coroutines-structured-concurrency`](../skills/kotlin-coroutines-structured-concurrency/SKILL.md).
+For `StateFlow`/`SharedFlow`/`Channel` primitive selection, load
+[`kotlin-flow-state-event-modeling`](../skills/kotlin-flow-state-event-modeling/SKILL.md).
+
+## Quick reference: ❌ avoid → ✅ prefer
+
+| Topic | ❌ Avoid | ✅ Prefer |
+| :--- | :--- | :--- |
+| Null check | `if (user != null) user.name` | `user?.name ?: "Unknown"` |
+| Mutability | `var count = 0` (never reassigned) | `val count = 0` |
+| Looping | `for (i in 0..list.size - 1)` | `list.forEach { … }` / `for (x in list)` |
+| Strings | `"Hello " + name + "!"` | `"Hello $name!"` |
+| Function body | `fun add(a: Int, b: Int): Int { return a + b }` | `fun add(a: Int, b: Int) = a + b` |
+| State modeling | `open class State` holding data | `sealed interface State` |
+| Object config | `val p = Point(); p.x = 1` | `Point().apply { x = 1 }` |
+| Constants | `val maxCount = 10` (top level) | `const val MAX_COUNT = 10` |
+| Filtering nulls | `list.filter { it != null }.map { it!! }` | `list.filterNotNull()` |
+| Branching | `if (a==1) x else if (a==2) y else z` | `when (a) { 1 -> x; 2 -> y; else -> z }` |
+| Dispatcher | `withContext(Dispatchers.IO) { … }` | `withContext(injectedDispatcher) { … }` |
+| Coroutine scope | `GlobalScope.launch { … }` | An owned, structured scope |
+
+## SOLID
+
+- **SRP** — one reason to change; keep classes/functions small and focused.
+- **OCP** — extend behavior via interfaces/abstractions instead of editing existing classes.
+- **LSP** — subtypes must be substitutable; don't override just to throw `NotImplementedError`.
+- **ISP** — prefer several small, client-specific interfaces over one fat interface.
+- **DIP** — depend on abstractions; inject dependencies through the constructor rather than
+  instantiating them inside (mirrors the dispatcher-injection rule above).
+
+## Pull requests
+
+Titles follow [Conventional Commits](https://www.conventionalcommits.org/):
+`<type>(<scope>): <description>` (`feat`/`fix`/`chore`/`docs`/`test`/`refactor`). Keep descriptions
+concise, explain *why* when it isn't obvious, and link issues (`Closes #123`). See
+[`CLAUDE.md`](../../CLAUDE.md) for the full PR/CI workflow.

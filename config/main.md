@@ -188,7 +188,11 @@ kotlin-app-template/
 ├── renovate.json                    # Renovate bot configuration for dependency updates
 ├── diktat-analysis.yml              # Diktat analysis configuration
 ├── checksum.sh                      # Checksum verification script
-└── AGENTS.md                        # AI agent guidelines
+├── AGENTS.md                        # Canonical AI agent entry point
+└── .agents/                         # Agent context map, reference docs, and Kotlin skills
+    ├── README.md                    # Context map (what to load for which task)
+    ├── reference/                   # coding-conventions.md, testing.md, commands.md
+    └── skills/                      # Portable SKILL.md procedures (coroutines, Flow, control flow, …)
 ```
 
 ## CI/CD
