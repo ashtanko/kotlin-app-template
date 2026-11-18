@@ -12,6 +12,14 @@ fun isLinux(): Boolean {
     return listOf("linux", "mac os", "macos").contains(osName)
 }
 
+buildscript {
+    dependencies {
+        // diktat-gradle-plugin bundles an old, unrelocated Guava; put a current Guava first on the
+        // build classpath so the dependency-analysis plugin (requires Guava >= 33.1.0) can load.
+        classpath(libs.guava)
+    }
+}
+
 @Suppress("DSL_SCOPE_VIOLATION") // https://youtrack.jetbrains.com/issue/KTIJ-19369
 plugins {
     base
